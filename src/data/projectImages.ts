@@ -101,6 +101,7 @@ export const projectImages: Record<string, ProjectImageGroup[]> = {
     jetscan: [
         {
             title: 'App Screenshots',
+            variant: 'mobile',
             images: [
                 { src: jetscanHome, label: 'Home' },
                 { src: jetscanDocScanning, label: 'Scanning' },
