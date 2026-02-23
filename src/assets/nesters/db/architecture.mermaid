@@ -1,0 +1,57 @@
+erDiagram
+
+    USER_DETAILS {
+        uuid id PK
+        text full_name
+        text email
+        text college
+    }
+
+    APARTMENTS {
+        bigint id PK
+        uuid user_id FK
+        real rent
+        geography location
+    }
+
+    SUBLETS {
+        bigint id PK
+        uuid user_id FK
+        real rent
+        geography location
+    }
+
+    MARKETPLACES {
+        bigint id PK
+        uuid user_id FK
+        text name
+        integer price
+    }
+
+    APARTMENT_LIKES {
+        bigint id PK
+        uuid user_id FK
+        bigint apartment_id FK
+    }
+
+    SUBLET_LIKES {
+        bigint id PK
+        uuid user_id FK
+        bigint sublet_id FK
+    }
+
+    MARKETPLACES_LIKES {
+        bigint id PK
+        uuid user_id FK
+        bigint marketplace_id FK
+    }
+
+    USER_DETAILS ||--o{ APARTMENTS : posts
+    USER_DETAILS ||--o{ SUBLETS : posts
+    USER_DETAILS ||--o{ MARKETPLACES : posts
+    USER_DETAILS ||--o{ APARTMENT_LIKES : likes
+    USER_DETAILS ||--o{ SUBLET_LIKES : likes
+    USER_DETAILS ||--o{ MARKETPLACES_LIKES : likes
+    APARTMENTS ||--o{ APARTMENT_LIKES : liked_by
+    SUBLETS ||--o{ SUBLET_LIKES : liked_by
+    MARKETPLACES ||--o{ MARKETPLACES_LIKES : liked_by

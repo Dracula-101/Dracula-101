@@ -1,0 +1,126 @@
+@import 'tailwindcss';
+
+@import '@fontsource-variable/space-grotesk';
+@import '@fontsource-variable/inter';
+@import '@fontsource/jetbrains-mono';
+@import './styles/tokens.css';
+@import './styles/reset.css';
+@import './styles/typography.css';
+
+html,
+body,
+#root {
+  width: 100%;
+  min-height: 100%;
+}
+
+canvas {
+  display: block;
+}
+
+.will-change-transform {
+  will-change: transform;
+}
+
+.gpu {
+  transform: translateZ(0);
+  backface-visibility: hidden;
+}
+
+/* Noise filter */
+svg.noise-filter {
+  position: fixed;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+}
+
+/* ---- Magnetic Button Ripple ---- */
+.mag-ripple {
+  position: absolute;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.35);
+  transform: translate(-50%, -50%) scale(0);
+  animation: mag-ripple-expand 0.65s var(--ease-out) forwards;
+  pointer-events: none;
+  z-index: var(--z-raised);
+}
+
+@keyframes mag-ripple-expand {
+  0% {
+    transform: translate(-50%, -50%) scale(0);
+    opacity: 1;
+  }
+
+  100% {
+    transform: translate(-50%, -50%) scale(40);
+    opacity: 0;
+  }
+}
+
+/* ---- Pulse dot ---- */
+@keyframes pulse-dot {
+
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  50% {
+    opacity: 0.5;
+    transform: scale(1.6);
+  }
+}
+
+.animate-pulse-dot {
+  animation: pulse-dot 2s ease-in-out infinite;
+}
+
+/* ---- Smooth section spacing ---- */
+.section-pad {
+  padding-top: var(--section-v);
+  padding-bottom: var(--section-v);
+}
+
+/* ---- Animation patterns (Section 4) ---- */
+.anim-entrance {
+  transition: transform var(--duration-slow) var(--ease-out),
+    opacity var(--duration-slow) var(--ease-out);
+}
+
+.anim-hover-lift {
+  transition: transform var(--duration-fast) var(--ease-out);
+}
+
+.anim-hover-lift:hover {
+  transform: translateY(-4px);
+}
+
+.anim-hover-glow {
+  transition: border-color var(--duration-fast) var(--ease-out);
+}
+
+/* ---- Nav link underline pattern (Tier 4) ---- */
+.nav-link {
+  position: relative;
+}
+
+.nav-link::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  bottom: -2px;
+  width: 100%;
+  height: 1px;
+  background: var(--color-accent);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform var(--duration-base) var(--ease-out);
+}
+
+.nav-link:hover::after {
+  transform: scaleX(1);
+}
