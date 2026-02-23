@@ -2,6 +2,7 @@ import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 
 export default defineConfig({
+  base: '/Dracula-101/',
   plugins: [react()],
   optimizeDeps: {
     include: ['three', 'gsap', 'framer-motion', 'zustand', 'lenis', 'ogl'],

@@ -6,7 +6,7 @@ import { App } from './App';
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <BrowserRouter>
+    <BrowserRouter basename="/Dracula-101">
       <App />
     </BrowserRouter>
   </StrictMode>
