@@ -46,10 +46,10 @@ export function About() {
 
   return (
     <SectionWrapper id="about">
-      <div className="grid grid-cols-1 lg:grid-cols-2 items-center" style={{ gap: 'var(--space-12)' }}>
-        {/* Left — 3D network mesh */}
-        <div className="flex justify-center items-center" style={{ minHeight: 400 }}>
-          <NetworkMesh className="w-full max-w-[480px]" />
+      <div className="grid grid-cols-1 lg:grid-cols-2 items-start" style={{ gap: 'var(--space-12)' }}>
+        {/* Left — orbital mesh */}
+        <div className="flex flex-col items-center justify-center" style={{ minHeight: 420 }}>
+          <NetworkMesh className="w-full max-w-[500px]" />
         </div>
 
         {/* Right — Text */}

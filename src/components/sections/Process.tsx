@@ -24,9 +24,8 @@ function ProcessCard({ step, index }: { step: typeof processSteps[0]; index: num
         padding: 'var(--space-4)',
         gap: 'var(--space-2)',
       }}
-      initial={{ opacity: 0, y: 32 }}
+      initial={{ opacity: 0, y: 24 }}
       animate={isInView ? { opacity: 1, y: 0 } : {}}
-      whileHover={{ y: -4, transition: { duration: transitions.hoverLift.duration } }}
       transition={{
         duration: transitions.entrance.duration,
         delay: index * transitions.stagger,
@@ -44,88 +43,54 @@ function ProcessCard({ step, index }: { step: typeof processSteps[0]; index: num
         transition={transitions.hoverLift}
       />
 
-      {/* Watermark number */}
-      <span
-        className="absolute -top-2 -right-1 select-none pointer-events-none"
-        style={{
-          fontFamily: 'var(--font-display)',
-          fontSize: 'clamp(80px, 10vw, 140px)',
-          fontWeight: 700,
-          letterSpacing: '-0.05em',
-          lineHeight: 0.85,
-          color: 'var(--color-border)',
-          opacity: 0.5,
-        }}
-      >
-        {step.number}
-      </span>
-
-      {/* Step indicator dot + line */}
-      <div className="flex items-center" style={{ gap: 'var(--space-1)', marginBottom: 'var(--space-1)' }}>
-        <motion.div
+      {/* Number + Icon row */}
+      <div className="flex items-center justify-between">
+        <span
+          className="select-none"
           style={{
-            width: 8,
-            height: 8,
-            borderRadius: '50%',
-            background: 'var(--color-accent)',
-            flexShrink: 0,
-          }}
-          initial={{ scale: 0 }}
-          animate={isInView ? { scale: 1 } : {}}
-          transition={{ duration: 0.3, delay: index * transitions.stagger + 0.2 }}
-        />
-        <motion.div
-          style={{
-            height: 1,
-            flex: 1,
-            background: 'var(--color-accent)',
-            transformOrigin: 'left',
-          }}
-          initial={{ scaleX: 0 }}
-          animate={isInView ? { scaleX: 1 } : {}}
-          transition={{ duration: 0.5, delay: index * transitions.stagger + 0.3 }}
-        />
-      </div>
-
-      {/* Icon */}
-      {Icon && (
-        <div
-          className="relative z-10 flex items-center justify-center overflow-hidden"
-          style={{
-            width: 56,
-            height: 56,
-            border: '1px solid var(--color-border)',
+            fontFamily: 'var(--font-display)',
+            fontSize: 'clamp(32px, 4vw, 48px)',
+            fontWeight: 700,
+            letterSpacing: '-0.04em',
+            lineHeight: 1,
+            color: 'var(--color-border)',
           }}
         >
+          {step.number}
+        </span>
+        {Icon && (
           <motion.div
+            className="flex items-center justify-center"
+            style={{
+              width: 40,
+              height: 40,
+              border: '1px solid var(--color-border)',
+            }}
             animate={{ color: hovered ? 'var(--color-accent)' : 'var(--color-muted)' }}
             transition={{ duration: 0.2 }}
           >
-            <Icon size={24} strokeWidth={1.5} />
+            <Icon size={20} strokeWidth={1.5} />
           </motion.div>
-        </div>
-      )}
+        )}
+      </div>
 
       {/* Title */}
-      <h3
-        className="relative z-10 type-subheading"
-        style={{ color: 'var(--color-fg)', marginTop: 'var(--space-1)' }}
-      >
+      <h3 className="type-subheading" style={{ color: 'var(--color-fg)' }}>
         {step.title}
       </h3>
 
       {/* Body */}
-      <p className="relative z-10 type-body" style={{ color: 'var(--color-muted)' }}>
+      <p className="type-body" style={{ color: 'var(--color-muted)' }}>
         {step.body}
       </p>
 
       {/* Bottom accent line */}
       <motion.div
-        className="mt-auto relative z-10"
+        className="mt-auto"
         style={{ height: 1, background: 'var(--color-accent)', transformOrigin: 'left' }}
         initial={{ scaleX: 0 }}
         animate={isInView ? { scaleX: 1 } : {}}
-        transition={{ duration: 0.8, delay: index * transitions.stagger + 0.4 }}
+        transition={{ duration: 0.8, delay: index * transitions.stagger + 0.3 }}
       />
     </motion.div>
   );
@@ -198,7 +163,7 @@ function PhilosophyCard({
       {/* Supporting body */}
       <p
         className="type-body"
-        style={{ color: 'var(--color-muted)', marginTop: 'var(--space-2)' }}
+        style={{ color: 'var(--color-muted)', marginTop: 'var(--space-1)' }}
       >
         {principle.body}
       </p>
@@ -210,23 +175,17 @@ function PhilosophyCard({
 export function Process() {
   return (
     <SectionWrapper id="process">
-      {/* Section Header */}
-      <div style={{ marginBottom: 'var(--space-10)' }}>
+      {/* Section Header — matches Work / Experience / Research pattern */}
+      <div style={{ marginBottom: 'var(--space-6)' }}>
         <span className="type-label" style={{ color: 'var(--color-accent)' }}>04</span>
-        <span
-          className="type-label"
-          style={{ color: 'var(--color-accent)', marginLeft: 'var(--space-2)' }}
-        >
-          Process & Philosophy
-        </span>
-        <TextReveal delay={0.1}>
-          <h2
-            className="type-heading"
-            style={{ color: 'var(--color-fg)', marginTop: 'var(--space-3)' }}
-          >
-            How I build things.
-          </h2>
-        </TextReveal>
+        <div style={{ marginTop: 'var(--space-1)' }}>
+          <TextReveal delay={0.1}>
+            <h2 className="type-heading" style={{ color: 'var(--color-fg)' }}>
+              Process
+            </h2>
+          </TextReveal>
+        </div>
+        <p className="type-body" style={{ color: 'var(--color-muted)', marginTop: 'var(--space-2)' }}>How I build things</p>
       </div>
 
       {/* Process Cards Grid */}
@@ -239,19 +198,11 @@ export function Process() {
         ))}
       </div>
 
-      {/* Divider */}
-      <div
-        className="flex items-center"
-        style={{ margin: `var(--space-10) 0`, gap: 'var(--space-3)' }}
-      >
-        <div style={{ flex: 1, height: 1, background: 'var(--color-border)' }} />
-      </div>
-
       {/* Philosophy Section */}
-      <div>
-        <div style={{ marginBottom: 'var(--space-6)' }}>
+      <div style={{ marginTop: 'var(--space-10)' }}>
+        <div style={{ marginBottom: 'var(--space-5)' }}>
           <span className="type-label" style={{ color: 'var(--color-accent)' }}>
-            What I Believe
+            Philosophy
           </span>
         </div>
 
