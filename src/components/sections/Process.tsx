@@ -9,7 +9,7 @@ import { transitions } from '../../utils/spring';
 const ICONS = { Search, GitBranch, Code2, Zap } as const;
 
 /* ─── Process Step Card ─── */
-function ProcessCard({ step, index }: { step: typeof processSteps[0]; index: number }) {
+function StepCard({ step, index }: { step: typeof processSteps[0]; index: number }) {
   const ref = useRef<HTMLDivElement>(null);
   const isInView = useInView(ref, { once: true, margin: '-5% 0px' });
   const [hovered, setHovered] = useState(false);
@@ -18,154 +18,63 @@ function ProcessCard({ step, index }: { step: typeof processSteps[0]; index: num
   return (
     <motion.div
       ref={ref}
-      className="relative flex flex-col overflow-hidden h-full"
+      className="relative flex flex-col"
       style={{
-        background: 'var(--color-bg)',
         padding: 'var(--space-4)',
         gap: 'var(--space-2)',
+        borderLeft: '1px solid var(--color-border)',
       }}
-      initial={{ opacity: 0, y: 24 }}
+      initial={{ opacity: 0, y: 16 }}
       animate={isInView ? { opacity: 1, y: 0 } : {}}
       transition={{
         duration: transitions.entrance.duration,
-        delay: index * transitions.stagger,
+        delay: index * 0.1,
         ease: transitions.entrance.ease,
       }}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
     >
-      {/* Left accent bar on hover */}
+      {/* Accent bar on hover */}
       <motion.div
         className="absolute left-0 top-0 bottom-0"
-        style={{ width: 3, background: 'var(--color-accent)', transformOrigin: 'top' }}
+        style={{ width: 1, background: 'var(--color-accent)', transformOrigin: 'top' }}
         initial={{ scaleY: 0 }}
         animate={{ scaleY: hovered ? 1 : 0 }}
-        transition={transitions.hoverLift}
+        transition={{ duration: 0.3 }}
       />
 
-      {/* Number + Icon row */}
+      {/* Number + Icon */}
       <div className="flex items-center justify-between">
         <span
-          className="select-none"
-          style={{
-            fontFamily: 'var(--font-display)',
-            fontSize: 'clamp(32px, 4vw, 48px)',
-            fontWeight: 700,
-            letterSpacing: '-0.04em',
-            lineHeight: 1,
-            color: 'var(--color-border)',
-          }}
+          className="type-label select-none"
+          style={{ color: hovered ? 'var(--color-accent)' : 'var(--color-muted)', transition: 'color 0.2s' }}
         >
           {step.number}
         </span>
         {Icon && (
-          <motion.div
-            className="flex items-center justify-center"
-            style={{
-              width: 40,
-              height: 40,
-              border: '1px solid var(--color-border)',
-            }}
-            animate={{ color: hovered ? 'var(--color-accent)' : 'var(--color-muted)' }}
-            transition={{ duration: 0.2 }}
-          >
-            <Icon size={20} strokeWidth={1.5} />
-          </motion.div>
+          <div style={{ color: hovered ? 'var(--color-accent)' : 'var(--color-border)', transition: 'color 0.2s' }}>
+            <Icon size={16} strokeWidth={1.5} />
+          </div>
         )}
       </div>
 
       {/* Title */}
-      <h3 className="type-subheading" style={{ color: 'var(--color-fg)' }}>
+      <h3
+        style={{
+          fontFamily: 'var(--font-display)',
+          fontSize: 'clamp(16px, 1.5vw, 20px)',
+          fontWeight: 600,
+          letterSpacing: '-0.02em',
+          lineHeight: 1.2,
+          color: 'var(--color-fg)',
+        }}
+      >
         {step.title}
       </h3>
 
       {/* Body */}
-      <p className="type-body" style={{ color: 'var(--color-muted)' }}>
+      <p className="type-body" style={{ color: 'var(--color-muted)', fontSize: '13px', lineHeight: 1.5 }}>
         {step.body}
-      </p>
-
-      {/* Bottom accent line */}
-      <motion.div
-        className="mt-auto"
-        style={{ height: 1, background: 'var(--color-accent)', transformOrigin: 'left' }}
-        initial={{ scaleX: 0 }}
-        animate={isInView ? { scaleX: 1 } : {}}
-        transition={{ duration: 0.8, delay: index * transitions.stagger + 0.3 }}
-      />
-    </motion.div>
-  );
-}
-
-/* ─── Philosophy Principle Card ─── */
-function PhilosophyCard({
-  principle,
-  index,
-}: {
-  principle: typeof philosophyPrinciples[0];
-  index: number;
-}) {
-  const ref = useRef<HTMLDivElement>(null);
-  const isInView = useInView(ref, { once: true, margin: '-5% 0px' });
-
-  return (
-    <motion.div
-      ref={ref}
-      className="relative"
-      style={{
-        paddingLeft: 'var(--space-3)',
-        borderLeft: '2px solid var(--color-border)',
-      }}
-      initial={{ opacity: 0, y: 20 }}
-      animate={isInView ? { opacity: 1, y: 0 } : {}}
-      transition={{
-        duration: transitions.entrance.duration,
-        delay: index * 0.12,
-        ease: transitions.entrance.ease,
-      }}
-    >
-      {/* Accent bar fill on scroll */}
-      <motion.div
-        className="absolute top-0 bottom-0"
-        style={{
-          left: -2,
-          width: 2,
-          background: 'var(--color-accent)',
-          transformOrigin: 'top',
-        }}
-        initial={{ scaleY: 0 }}
-        animate={isInView ? { scaleY: 1 } : {}}
-        transition={{ duration: 0.8, delay: index * 0.12 + 0.3 }}
-      />
-
-      {/* Title label */}
-      <p
-        className="type-label"
-        style={{ color: 'var(--color-accent)', textTransform: 'uppercase' }}
-      >
-        {principle.title}
-      </p>
-
-      {/* Bold statement */}
-      <p
-        style={{
-          fontFamily: 'var(--font-display)',
-          fontSize: 'clamp(18px, 2vw, 24px)',
-          fontWeight: 600,
-          letterSpacing: '-0.02em',
-          lineHeight: 1.3,
-          color: 'var(--color-fg)',
-          marginTop: 'var(--space-1)',
-        }}
-      >
-        {principle.statement}
-      </p>
-
-      {/* Supporting body */}
-      <p
-        className="type-body"
-        style={{ color: 'var(--color-muted)', marginTop: 'var(--space-1)' }}
-      >
-        {principle.body}
       </p>
     </motion.div>
   );
@@ -173,47 +82,77 @@ function PhilosophyCard({
 
 /* ─── Main Section ─── */
 export function Process() {
+  const philRef = useRef<HTMLDivElement>(null);
+  const philInView = useInView(philRef, { once: true, margin: '-5% 0px' });
+
   return (
     <SectionWrapper id="process">
-      {/* Section Header — matches Work / Experience / Research pattern */}
-      <div style={{ marginBottom: 'var(--space-6)' }}>
-        <span className="type-label" style={{ color: 'var(--color-accent)' }}>04</span>
-        <div style={{ marginTop: 'var(--space-1)' }}>
-          <TextReveal delay={0.1}>
-            <h2 className="type-heading" style={{ color: 'var(--color-fg)' }}>
-              Process
-            </h2>
-          </TextReveal>
+      {/* Header */}
+      <div className="flex items-end justify-between" style={{ marginBottom: 'var(--space-5)' }}>
+        <div>
+          <span className="type-label" style={{ color: 'var(--color-accent)' }}>05</span>
+          <div style={{ marginTop: 'var(--space-1)' }}>
+            <TextReveal delay={0.1}>
+              <h2 className="type-heading" style={{ color: 'var(--color-fg)' }}>
+                Process & Philosophy
+              </h2>
+            </TextReveal>
+          </div>
         </div>
-        <p className="type-body" style={{ color: 'var(--color-muted)', marginTop: 'var(--space-2)' }}>How I build things</p>
       </div>
 
-      {/* Process Cards Grid */}
+      {/* Process Steps — 4-col horizontal row */}
       <div
-        className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4"
-        style={{ gap: 1, background: 'var(--color-border)' }}
+        className="grid grid-cols-2 lg:grid-cols-4"
+        style={{ borderRight: '1px solid var(--color-border)' }}
       >
         {processSteps.map((step, i) => (
-          <ProcessCard key={step.number} step={step} index={i} />
+          <StepCard key={step.number} step={step} index={i} />
         ))}
       </div>
 
-      {/* Philosophy Section */}
-      <div style={{ marginTop: 'var(--space-10)' }}>
-        <div style={{ marginBottom: 'var(--space-5)' }}>
-          <span className="type-label" style={{ color: 'var(--color-accent)' }}>
-            Philosophy
-          </span>
-        </div>
-
-        <div
-          className="grid grid-cols-1 md:grid-cols-3"
-          style={{ gap: 'var(--space-6)' }}
-        >
-          {philosophyPrinciples.map((principle, i) => (
-            <PhilosophyCard key={principle.title} principle={principle} index={i} />
-          ))}
-        </div>
+      {/* Philosophy — inline row below */}
+      <div
+        ref={philRef}
+        className="grid grid-cols-1 md:grid-cols-3"
+        style={{
+          marginTop: 'var(--space-6)',
+          gap: 'var(--space-5)',
+          paddingTop: 'var(--space-5)',
+          borderTop: '1px solid var(--color-border)',
+        }}
+      >
+        {philosophyPrinciples.map((p, i) => (
+          <motion.div
+            key={p.title}
+            className="flex flex-col"
+            style={{ gap: 'var(--space-1)' }}
+            initial={{ opacity: 0, y: 12 }}
+            animate={philInView ? { opacity: 1, y: 0 } : {}}
+            transition={{
+              duration: transitions.entrance.duration,
+              delay: i * 0.1,
+              ease: transitions.entrance.ease,
+            }}
+          >
+            <span className="type-label" style={{ color: 'var(--color-accent)' }}>{p.title}</span>
+            <span
+              style={{
+                fontFamily: 'var(--font-display)',
+                fontSize: 'clamp(14px, 1.4vw, 17px)',
+                fontWeight: 600,
+                letterSpacing: '-0.01em',
+                lineHeight: 1.35,
+                color: 'var(--color-fg)',
+              }}
+            >
+              {p.statement}
+            </span>
+            <span className="type-body" style={{ color: 'var(--color-muted)', fontSize: '13px' }}>
+              {p.body}
+            </span>
+          </motion.div>
+        ))}
       </div>
     </SectionWrapper>
   );

@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useCallback } from 'react';
 import { motion, useInView } from 'framer-motion';
 import { Github, Linkedin, Mail, ExternalLink, MapPin } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
@@ -6,7 +6,6 @@ import { animated, useSpring } from '@react-spring/web';
 import { MagneticButton } from '../ui/MagneticButton';
 import { useCursorStore } from '../../store/cursor.store';
 import { springs, transitions } from '../../utils/spring';
-import { ContactMesh } from '../../webgl/ogl/mesh';
 
 const EMAIL = 'pratikpujari1000@gmail.com';
 
@@ -82,37 +81,130 @@ function stagger(isInView: boolean, index: number) {
 export function Contact() {
   const sectionRef = useRef<HTMLElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const meshRef = useRef<ContactMesh | null>(null);
   const setVariant = useCursorStore((s) => s.setVariant);
   const isInView = useInView(sectionRef, { once: true, amount: 0.08 });
-  const [meshReady, setMeshReady] = useState(false);
+  const mouseRef = useRef({ x: 0, y: 0 });
 
-  // Initialize OGL mesh only when section is in view
-  useEffect(() => {
-    if (!canvasRef.current || !isInView || meshReady) return;
-    try {
-      meshRef.current = new ContactMesh({ canvas: canvasRef.current });
-      setMeshReady(true);
-    } catch (e) {
-      console.warn('ContactMesh failed to initialize:', e);
-    }
-    return () => {
-      try { meshRef.current?.dispose(); } catch { /* noop */ }
+  // Canvas 2D animated dot-grid background (no WebGL needed)
+  const animateGrid = useCallback(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    const dpr = Math.min(window.devicePixelRatio, 2);
+    const parent = canvas.parentElement!;
+    const w = parent.offsetWidth;
+    const h = parent.offsetHeight;
+    canvas.width = w * dpr;
+    canvas.height = h * dpr;
+    canvas.style.width = w + 'px';
+    canvas.style.height = h + 'px';
+    ctx.scale(dpr, dpr);
+
+    const spacing = 40;
+    const cols = Math.ceil(w / spacing) + 1;
+    const rows = Math.ceil(h / spacing) + 1;
+    const accent = [245, 166, 35]; // #F5A623
+
+    let rafId: number;
+    const start = Date.now();
+
+    const handleMouse = (e: MouseEvent) => {
+      const rect = canvas.getBoundingClientRect();
+      mouseRef.current.x = e.clientX - rect.left;
+      mouseRef.current.y = e.clientY - rect.top;
     };
-  }, [isInView, meshReady]);
+    window.addEventListener('mousemove', handleMouse, { passive: true });
+
+    const draw = () => {
+      const t = (Date.now() - start) / 1000;
+      ctx.clearRect(0, 0, w, h);
+
+      for (let row = 0; row < rows; row++) {
+        for (let col = 0; col < cols; col++) {
+          const baseX = col * spacing;
+          const baseY = row * spacing;
+
+          // Subtle wave offset
+          const ox = Math.sin(t * 0.5 + row * 0.3 + col * 0.2) * 3;
+          const oy = Math.cos(t * 0.4 + col * 0.3 + row * 0.2) * 3;
+          const x = baseX + ox;
+          const y = baseY + oy;
+
+          // Mouse proximity brightens dots
+          const dx = mouseRef.current.x - x;
+          const dy = mouseRef.current.y - y;
+          const dist = Math.sqrt(dx * dx + dy * dy);
+          const proximity = Math.max(0, 1 - dist / 180);
+
+          const alpha = 0.06 + proximity * 0.25 + Math.sin(t * 0.8 + row + col) * 0.02;
+          const radius = 1 + proximity * 2;
+
+          ctx.beginPath();
+          ctx.arc(x, y, radius, 0, Math.PI * 2);
+          ctx.fillStyle = `rgba(${accent[0]},${accent[1]},${accent[2]},${alpha})`;
+          ctx.fill();
+
+          // Draw connecting lines to neighbors when mouse is near
+          if (proximity > 0.05) {
+            const lineAlpha = proximity * 0.12;
+            ctx.strokeStyle = `rgba(${accent[0]},${accent[1]},${accent[2]},${lineAlpha})`;
+            ctx.lineWidth = 0.5;
+            // Right neighbor
+            if (col < cols - 1) {
+              const nx = (col + 1) * spacing + Math.sin(t * 0.5 + row * 0.3 + (col + 1) * 0.2) * 3;
+              const ny = baseY + Math.cos(t * 0.4 + (col + 1) * 0.3 + row * 0.2) * 3;
+              ctx.beginPath();
+              ctx.moveTo(x, y);
+              ctx.lineTo(nx, ny);
+              ctx.stroke();
+            }
+            // Bottom neighbor
+            if (row < rows - 1) {
+              const nx = baseX + Math.sin(t * 0.5 + (row + 1) * 0.3 + col * 0.2) * 3;
+              const ny = (row + 1) * spacing + Math.cos(t * 0.4 + col * 0.3 + (row + 1) * 0.2) * 3;
+              ctx.beginPath();
+              ctx.moveTo(x, y);
+              ctx.lineTo(nx, ny);
+              ctx.stroke();
+            }
+          }
+        }
+      }
+      rafId = requestAnimationFrame(draw);
+    };
+    draw();
+
+    return () => {
+      cancelAnimationFrame(rafId);
+      window.removeEventListener('mousemove', handleMouse);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!isInView) return;
+    const cleanup = animateGrid();
+    const onResize = () => { cleanup?.(); animateGrid(); };
+    window.addEventListener('resize', onResize);
+    return () => {
+      cleanup?.();
+      window.removeEventListener('resize', onResize);
+    };
+  }, [isInView, animateGrid]);
 
   return (
     <section
       ref={sectionRef}
       id="contact"
       className="relative overflow-hidden"
-      style={{ isolation: 'isolate' }}
+      style={{ isolation: 'isolate', backgroundColor: 'var(--color-bg)' }}
     >
-      {/* OGL background canvas */}
+      {/* Canvas 2D animated grid background */}
       <canvas
         ref={canvasRef}
-        className="absolute inset-0 w-full h-full pointer-events-none"
-        style={{ zIndex: -1 }}
+        className="absolute inset-0 pointer-events-none"
+        style={{ zIndex: 0 }}
       />
 
       {/* Content */}
@@ -120,7 +212,7 @@ export function Contact() {
         className="relative"
         style={{
           zIndex: 'var(--z-base)',
-          padding: 'var(--outer-margin)',
+          padding: 'var(--section-v) var(--outer-margin)',
         }}
       >
         {/* Tier 3 Section Header */}

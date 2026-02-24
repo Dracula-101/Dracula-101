@@ -166,7 +166,7 @@ export function Globe({ className }: { className?: string }) {
     /* ── Scene ── */
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(45, w / h, 0.1, 100);
-    camera.position.set(0, 1.5, 5.5);
+    camera.position.set(0, 0.5, 6);
     camera.lookAt(0, 0, 0);
 
     /* ── Globe group ── */

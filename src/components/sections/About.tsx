@@ -56,7 +56,7 @@ export function About() {
         <div className="flex flex-col" style={{ gap: 'var(--space-5)' }}>
           {/* Tier 3 Section Header */}
           <div>
-            <span className="type-label" style={{ color: 'var(--color-accent)' }}>02</span>
+            <span className="type-label" style={{ color: 'var(--color-accent)' }}>01</span>
             <TypewriterLabel text="// ABOUT ME" />
             <div className="overflow-hidden" style={{ marginTop: 'var(--space-3)' }}>
               <TextReveal delay={0.1}>

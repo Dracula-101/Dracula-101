@@ -27,7 +27,7 @@ export function SectionWrapper({
       ref={ref}
       id={id}
       className={clsx('relative', className)}
-      style={fullBleed ? undefined : { paddingLeft: 'var(--outer-margin)', paddingRight: 'var(--outer-margin)' }}
+      style={fullBleed ? { paddingTop: 'var(--section-v)', paddingBottom: 'var(--section-v)' } : { paddingLeft: 'var(--outer-margin)', paddingRight: 'var(--outer-margin)', paddingTop: 'var(--section-v)', paddingBottom: 'var(--section-v)' }}
       initial={noReveal ? undefined : { opacity: 0, y: 24 }}
       animate={noReveal ? undefined : isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 24 }}
       transition={noReveal ? undefined : transitions.entrance}

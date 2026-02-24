@@ -153,7 +153,7 @@ export function Work() {
     <SectionWrapper id="work" fullBleed>
       {/* Tier 3 Section Header */}
       <div style={{ padding: `0 var(--outer-margin)`, marginBottom: 'var(--space-1)' }}>
-        <span className="type-label" style={{ color: 'var(--color-accent)' }}>01</span>
+        <span className="type-label" style={{ color: 'var(--color-accent)' }}>02</span>
       </div>
       <div style={{ padding: `0 var(--outer-margin)`, marginBottom: 'var(--space-2)' }}>
         <TextReveal delay={0.1}>
@@ -179,7 +179,7 @@ export function Work() {
       </div>
 
       {/* Project list */}
-      <div style={{ padding: `0 var(--outer-margin)`, paddingBottom: 'var(--section-v)' }}>
+      <div style={{ padding: `0 var(--outer-margin)` }}>
         {projects.map((project, i) => (
           <ProjectRow key={project.id} project={project} index={i} />
         ))}

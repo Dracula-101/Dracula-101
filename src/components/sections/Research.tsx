@@ -301,7 +301,7 @@ export function Research() {
         <SectionWrapper id="research">
             {/* Tier 3 Section Header */}
             <div style={{ marginBottom: 'var(--space-6)' }}>
-                <span className="type-label" style={{ color: 'var(--color-accent)' }}>05</span>
+                <span className="type-label" style={{ color: 'var(--color-accent)' }}>04</span>
                 <span className="type-label" style={{ color: 'var(--color-accent)', marginLeft: 'var(--space-2)' }}>
                     <BookOpen size={12} strokeWidth={1.5} className="inline-block align-baseline" style={{ marginRight: 'var(--space-1)' }} />
                     Publications & Research
