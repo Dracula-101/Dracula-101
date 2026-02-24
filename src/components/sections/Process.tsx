@@ -87,16 +87,29 @@ export function Process() {
 
   return (
     <SectionWrapper id="process">
-      {/* Header */}
-      <div className="flex items-end justify-between" style={{ marginBottom: 'var(--space-5)' }}>
-        <div>
-          <span className="type-label" style={{ color: 'var(--color-accent)' }}>05</span>
-          <div style={{ marginTop: 'var(--space-1)' }}>
-            <TextReveal delay={0.1}>
-              <h2 className="type-heading" style={{ color: 'var(--color-fg)' }}>
-                Process & Philosophy
-              </h2>
-            </TextReveal>
+      {/* Sticky Section Header */}
+      <div
+        style={{
+          position: 'sticky',
+          top: 0,
+          zIndex: 'var(--z-raised)',
+          background: 'rgba(10,10,10,0.92)',
+          backdropFilter: 'blur(4px)',
+          paddingTop: 'var(--space-2)',
+          paddingBottom: 'var(--space-2)',
+          marginBottom: 'var(--space-5)',
+        }}
+      >
+        <div className="flex items-end justify-between">
+          <div>
+            <span className="type-label" style={{ color: 'var(--color-accent)' }}>05</span>
+            <div style={{ marginTop: 'var(--space-1)' }}>
+              <TextReveal delay={0.1}>
+                <h2 className="type-heading" style={{ color: 'var(--color-fg)' }}>
+                  Process & Philosophy
+                </h2>
+              </TextReveal>
+            </div>
           </div>
         </div>
       </div>

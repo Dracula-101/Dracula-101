@@ -299,21 +299,17 @@ function ResearchProjectCard({
 export function Research() {
     return (
         <SectionWrapper id="research">
-            {/* Tier 3 Section Header */}
-            <div style={{ marginBottom: 'var(--space-6)' }}>
-                <span className="type-label" style={{ color: 'var(--color-accent)' }}>04</span>
-                <span className="type-label" style={{ color: 'var(--color-accent)', marginLeft: 'var(--space-2)' }}>
-                    <BookOpen size={12} strokeWidth={1.5} className="inline-block align-baseline" style={{ marginRight: 'var(--space-1)' }} />
-                    Publications & Research
-                </span>
-                <TextReveal delay={0.1}>
-                    <h2
-                        className="type-heading"
-                        style={{ color: 'var(--color-fg)', marginTop: 'var(--space-3)' }}
-                    >
-                        Research
-                    </h2>
-                </TextReveal>
+            {/* Section Header */}
+            <div style={{ marginBottom: 'var(--space-3)' }}>
+                <span className="type-label" style={{ color: 'var(--color-accent)' }}>03</span>
+                <div style={{ marginTop: 'var(--space-1)' }}>
+                    <TextReveal delay={0.1}>
+                        <h2 className="type-heading" style={{ color: 'var(--color-fg)' }}>
+                            Research
+                        </h2>
+                    </TextReveal>
+                </div>
+                <p className="type-body" style={{ color: 'var(--color-muted)', marginTop: 'var(--space-2)' }}>Where I've worked</p>
             </div>
 
             {/* Stats strip */}

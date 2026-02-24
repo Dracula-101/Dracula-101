@@ -165,7 +165,7 @@ export function Work() {
           </h2>
         </TextReveal>
       </div>
-      <div style={{ padding: `0 var(--outer-margin)`, marginBottom: 'var(--space-5)' }}>
+      <div style={{ padding: `0 var(--outer-margin)`, marginBottom: 'var(--space-3)' }}>
         <p className="type-body" style={{ color: 'var(--color-muted)' }}>Selected projects</p>
       </div>
 
