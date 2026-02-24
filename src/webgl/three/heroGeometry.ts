@@ -1,448 +1,75 @@
 import * as THREE from 'three';
+import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { raf } from '../../utils/raf';
 import { lerp } from '../../utils/math';
 
 /* ------------------------------------------------------------------
- *  Hero 3D Carousel — Mobile, Web (Monitor), Server
- *
- *  Glowing accent-colored wireframes on dark background.
- *  One model at a time with auto-rotation every ~4s.
- *  Orbiting particle ring around the active model.
+ *  Hero 3D — Carousel of 3 GLB models (Phone, Laptop, Server).
+ *  Auto-cycles every 5 s with scale + opacity fade transitions.
+ *  Sits on the right side; auto-rotates, mouse-follow, drag, click.
  *
  *  Interactions:
- *    hover  → glow intensifies + scale boost + particles speed up
- *    click  → explode/reassemble + advance carousel
+ *    hover  → scale pulse + glow boost
+ *    click  → 360° spin burst
  *    drag   → free orbit rotation
- *    scroll → parallax + fade
+ *    scroll → parallax depth + canvas fade
  * ------------------------------------------------------------------ */
+
+interface ModelEntry {
+  group: THREE.Group;
+  loaded: boolean;
+  currentOpacity: number;
+  targetOpacity: number;
+  currentScale: number;
+  targetScale: number;
+}
 
 interface HeroGeometryConfig {
   canvas: HTMLCanvasElement;
   foregroundColor?: string;
   accentColor?: string;
+  onSlideChange?: (index: number) => void;
+  onProgress?: (loaded: number, total: number) => void;
+  onAllLoaded?: () => void;
 }
 
-/* ====================== Procedural model builders ====================== */
+const MODEL_FILES = [
+  'low_poly_android_phone.glb',   // 0 — Mobile
+  'laptop.glb',                    // 1 — Web
+  'server_rack.glb',               // 2 — Server
+];
 
-function buildPhoneModel(): THREE.BufferGeometry {
-  const parts: THREE.BufferGeometry[] = [];
+/* Per-model orientation corrections [rotX, rotY, rotZ] in radians.
+   Applied to the inner model so pivot rotation stays clean. */
+const MODEL_ROTATIONS: [number, number, number][] = [
+  [Math.PI / 2, 0, 0],              // 0 — Phone: stand upright (Z→Y)
+  [0, Math.PI, 0],                   // 1 — Laptop: face towards camera
+  [0, 0, 0],                        // 2 — Server
+];
 
-  // Body with rounded-ish edges (higher segment count)
-  const body = new THREE.BoxGeometry(1.1, 2.0, 0.1, 6, 8, 2);
-  parts.push(body);
-
-  // Screen bezel frame
-  const bezel = new THREE.BoxGeometry(0.95, 1.7, 0.02, 4, 6, 1);
-  bezel.translate(0, 0.02, 0.055);
-  parts.push(bezel);
-
-  // Screen glass
-  const glass = new THREE.PlaneGeometry(0.88, 1.6, 5, 8);
-  glass.translate(0, 0.02, 0.065);
-  parts.push(glass);
-
-  // Camera module (square island)
-  const camModule = new THREE.BoxGeometry(0.32, 0.32, 0.04, 3, 3, 1);
-  camModule.translate(-0.28, 0.72, -0.07);
-  parts.push(camModule);
-
-  // Camera lenses (2 circles)
-  for (let i = 0; i < 2; i++) {
-    const ring = new THREE.TorusGeometry(0.07, 0.018, 8, 16);
-    ring.translate(-0.28 + (i % 2) * 0.14, 0.72 - Math.floor(i / 2) * 0.14, -0.09);
-    parts.push(ring);
-    const lensInner = new THREE.CircleGeometry(0.04, 10);
-    lensInner.translate(-0.28 + (i % 2) * 0.14, 0.72 - Math.floor(i / 2) * 0.14, -0.09);
-    parts.push(lensInner);
-  }
-
-  // Speaker slit
-  const speaker = new THREE.BoxGeometry(0.2, 0.015, 0.01, 4, 1, 1);
-  speaker.translate(0, 0.9, 0.06);
-  parts.push(speaker);
-
-  // Home indicator
-  const homeBar = new THREE.BoxGeometry(0.35, 0.025, 0.005, 5, 1, 1);
-  homeBar.translate(0, -0.88, 0.06);
-  parts.push(homeBar);
-
-  // Side buttons
-  const volUp = new THREE.BoxGeometry(0.025, 0.14, 0.05, 1, 3, 1);
-  volUp.translate(-0.565, 0.38, 0);
-  parts.push(volUp);
-  const volDn = new THREE.BoxGeometry(0.025, 0.14, 0.05, 1, 3, 1);
-  volDn.translate(-0.565, 0.15, 0);
-  parts.push(volDn);
-  const pwr = new THREE.BoxGeometry(0.025, 0.2, 0.05, 1, 3, 1);
-  pwr.translate(0.565, 0.32, 0);
-  parts.push(pwr);
-
-  // On-screen UI: header bar
-  const headerBar = new THREE.PlaneGeometry(0.82, 0.06, 4, 1);
-  headerBar.translate(0, 0.76, 0.07);
-  parts.push(headerBar);
-
-  // UI content cards
-  for (let i = 0; i < 3; i++) {
-    const card = new THREE.PlaneGeometry(0.75, 0.2, 3, 2);
-    card.translate(0, 0.4 - i * 0.32, 0.07);
-    parts.push(card);
-    // Inner line detail
-    const line = new THREE.PlaneGeometry(0.5 - i * 0.05, 0.015, 2, 1);
-    line.translate(-0.05, 0.44 - i * 0.32, 0.072);
-    parts.push(line);
-  }
-
-  // Floating notification
-  const notif = new THREE.BoxGeometry(0.7, 0.14, 0.02, 4, 2, 1);
-  notif.translate(0.08, -0.35, 0.1);
-  parts.push(notif);
-
-  // Notification icon circle
-  const notifIcon = new THREE.CircleGeometry(0.03, 8);
-  notifIcon.translate(-0.22, -0.35, 0.115);
-  parts.push(notifIcon);
-
-  return mergeGeometries(parts);
-}
-
-function buildMonitorModel(): THREE.BufferGeometry {
-  const parts: THREE.BufferGeometry[] = [];
-
-  // Monitor housing (thicker bezel)
-  const housing = new THREE.BoxGeometry(2.6, 1.6, 0.1, 8, 6, 2);
-  housing.translate(0, 0.4, 0);
-  parts.push(housing);
-
-  // Screen
-  const screen = new THREE.PlaneGeometry(2.35, 1.4, 6, 5);
-  screen.translate(0, 0.4, 0.055);
-  parts.push(screen);
-
-  // Screen inner bezel
-  const innerBezel = new THREE.BoxGeometry(2.4, 1.45, 0.02, 5, 4, 1);
-  innerBezel.translate(0, 0.4, 0.05);
-  parts.push(innerBezel);
-
-  // Stand neck (tapered)
-  const neck = new THREE.CylinderGeometry(0.06, 0.1, 0.5, 8);
-  neck.translate(0, -0.6, 0);
-  parts.push(neck);
-
-  // Stand base (elegant curved)
-  const base = new THREE.TorusGeometry(0.4, 0.03, 6, 24, Math.PI);
-  base.rotateX(Math.PI / 2);
-  base.translate(0, -0.86, 0.05);
-  parts.push(base);
-  const basePlate = new THREE.BoxGeometry(0.9, 0.025, 0.4, 4, 1, 2);
-  basePlate.translate(0, -0.88, 0);
-  parts.push(basePlate);
-
-  // Webcam
-  const webcam = new THREE.CircleGeometry(0.03, 10);
-  webcam.translate(0, 1.15, 0.06);
-  parts.push(webcam);
-  const webcamRing = new THREE.TorusGeometry(0.035, 0.008, 6, 12);
-  webcamRing.translate(0, 1.15, 0.06);
-  parts.push(webcamRing);
-
-  // Browser chrome
-  const titleBar = new THREE.PlaneGeometry(2.3, 0.08, 6, 1);
-  titleBar.translate(0, 1.04, 0.06);
-  parts.push(titleBar);
-
-  // Traffic light dots
-  for (let i = 0; i < 3; i++) {
-    const dot = new THREE.CircleGeometry(0.018, 8);
-    dot.translate(-1.04 + i * 0.065, 1.04, 0.065);
-    parts.push(dot);
-  }
-
-  // Tab bar
-  for (let i = 0; i < 3; i++) {
-    const tab = new THREE.PlaneGeometry(0.3, 0.04, 3, 1);
-    tab.translate(-0.6 + i * 0.4, 0.95, 0.06);
-    parts.push(tab);
-  }
-
-  // Address bar
-  const addrBar = new THREE.BoxGeometry(1.8, 0.05, 0.01, 6, 1, 1);
-  addrBar.translate(0, 0.88, 0.06);
-  parts.push(addrBar);
-
-  // Content area — code editor left
-  for (let i = 0; i < 8; i++) {
-    const w = 0.4 + Math.sin(i * 1.7) * 0.15;
-    const codeLine = new THREE.PlaneGeometry(w, 0.018, 2, 1);
-    codeLine.translate(-0.68, 0.7 - i * 0.08, 0.06);
-    parts.push(codeLine);
-  }
-
-  // Content area — preview right
-  const previewBox = new THREE.PlaneGeometry(0.9, 0.55, 3, 3);
-  previewBox.translate(0.55, 0.38, 0.06);
-  parts.push(previewBox);
-
-  // Floating cursor
-  const cursorTri = new THREE.ConeGeometry(0.05, 0.12, 3);
-  cursorTri.rotateZ(Math.PI / 5);
-  cursorTri.translate(0.35, 0.3, 0.12);
-  parts.push(cursorTri);
-
-  return mergeGeometries(parts);
-}
-
-function buildServerModel(): THREE.BufferGeometry {
-  const parts: THREE.BufferGeometry[] = [];
-
-  // Main chassis
-  const chassis = new THREE.BoxGeometry(1.6, 2.2, 0.8, 5, 8, 3);
-  parts.push(chassis);
-
-  // Front panel inset
-  const frontPanel = new THREE.PlaneGeometry(1.5, 2.1, 4, 7);
-  frontPanel.translate(0, 0, 0.405);
-  parts.push(frontPanel);
-
-  // Rack unit dividers
-  for (let i = 0; i < 6; i++) {
-    const div = new THREE.PlaneGeometry(1.55, 0.005, 4, 1);
-    div.translate(0, -0.92 + i * 0.37, 0.41);
-    parts.push(div);
-  }
-
-  // Drive bay arrays (3 columns x 5 rows)
-  for (let row = 0; row < 5; row++) {
-    for (let col = 0; col < 3; col++) {
-      const bay = new THREE.BoxGeometry(0.18, 0.1, 0.03, 2, 2, 1);
-      bay.translate(-0.38 + col * 0.28, -0.74 + row * 0.37, 0.42);
-      parts.push(bay);
-    }
-  }
-
-  // Status LED pairs (per rack unit)
-  for (let row = 0; row < 5; row++) {
-    for (let i = 0; i < 3; i++) {
-      const led = new THREE.CircleGeometry(0.02, 6);
-      led.translate(0.52 + i * 0.07, -0.74 + row * 0.37, 0.42);
-      parts.push(led);
-    }
-  }
-
-  // Side ventilation (left side)
-  for (let r = 0; r < 8; r++) {
-    for (let c = 0; c < 4; c++) {
-      const vent = new THREE.CircleGeometry(0.022, 5);
-      vent.rotateY(Math.PI / 2);
-      vent.translate(0.805, -0.85 + r * 0.28, -0.25 + c * 0.17);
-      parts.push(vent);
-    }
-  }
-
-  // Side ventilation (right side)
-  for (let r = 0; r < 8; r++) {
-    for (let c = 0; c < 4; c++) {
-      const vent = new THREE.CircleGeometry(0.022, 5);
-      vent.rotateY(-Math.PI / 2);
-      vent.translate(-0.805, -0.85 + r * 0.28, -0.25 + c * 0.17);
-      parts.push(vent);
-    }
-  }
-
-  // Back panel ports
-  for (let i = 0; i < 6; i++) {
-    const port = new THREE.BoxGeometry(0.08, 0.06, 0.02, 2, 2, 1);
-    port.translate(-0.4 + i * 0.15, 0.85, -0.41);
-    parts.push(port);
-  }
-
-  // Power supply
-  const psu = new THREE.BoxGeometry(0.4, 0.18, 0.35, 3, 2, 2);
-  psu.translate(0.45, -1.0, -0.18);
-  parts.push(psu);
-
-  // Network uplink antenna
-  const antBase = new THREE.CylinderGeometry(0.025, 0.025, 0.08, 6);
-  antBase.translate(0.6, 1.14, 0.25);
-  parts.push(antBase);
-  const antPole = new THREE.CylinderGeometry(0.012, 0.012, 0.5, 4);
-  antPole.translate(0.6, 1.42, 0.25);
-  parts.push(antPole);
-  const antTip = new THREE.SphereGeometry(0.035, 6, 6);
-  antTip.translate(0.6, 1.7, 0.25);
-  parts.push(antTip);
-
-  // Signal waves (concentric arcs near antenna)
-  for (let i = 0; i < 3; i++) {
-    const wave = new THREE.TorusGeometry(0.1 + i * 0.08, 0.006, 4, 12, Math.PI * 0.6);
-    wave.rotateY(Math.PI / 2);
-    wave.rotateZ(-Math.PI * 0.3);
-    wave.translate(0.6, 1.75, 0.25 + i * 0.05);
-    parts.push(wave);
-  }
-
-  // Floating data packets orbiting
-  for (let i = 0; i < 5; i++) {
-    const angle = (i / 5) * Math.PI * 2;
-    const r = 1.2;
-    const packet = new THREE.OctahedronGeometry(0.06, 0);
-    packet.translate(Math.cos(angle) * r, 0.2 + Math.sin(angle * 2) * 0.4, Math.sin(angle) * r * 0.5);
-    parts.push(packet);
-  }
-
-  return mergeGeometries(parts);
-}
-
-/* ====================== Geometry merge ====================== */
-
-function mergeGeometries(geos: THREE.BufferGeometry[]): THREE.BufferGeometry {
-  let totalVerts = 0;
-  let totalIdx = 0;
-  for (const g of geos) {
-    if (!g.index) {
-      const pos = g.getAttribute('position');
-      const indices: number[] = [];
-      for (let i = 0; i < pos.count; i++) indices.push(i);
-      g.setIndex(indices);
-    }
-    totalVerts += g.getAttribute('position').count;
-    totalIdx += g.index!.count;
-  }
-  const positions = new Float32Array(totalVerts * 3);
-  const indices: number[] = [];
-  let vertOff = 0;
-  let idxOff = 0;
-  for (const g of geos) {
-    const pos = g.getAttribute('position');
-    for (let i = 0; i < pos.count; i++) {
-      positions[(vertOff + i) * 3] = pos.getX(i);
-      positions[(vertOff + i) * 3 + 1] = pos.getY(i);
-      positions[(vertOff + i) * 3 + 2] = pos.getZ(i);
-    }
-    const idx = g.index!;
-    for (let i = 0; i < idx.count; i++) {
-      indices[idxOff + i] = idx.array[i] + vertOff;
-    }
-    vertOff += pos.count;
-    idxOff += idx.count;
-    g.dispose();
-  }
-  const merged = new THREE.BufferGeometry();
-  merged.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-  merged.setIndex(indices);
-  merged.computeVertexNormals();
-  return merged;
-}
-
-/* ====================== Orbiting ring ====================== */
-
-function createOrbitRing(count: number, radius: number, color: THREE.Color): THREE.Points {
-  const positions = new Float32Array(count * 3);
-  const sizes = new Float32Array(count);
-  for (let i = 0; i < count; i++) {
-    const angle = (i / count) * Math.PI * 2;
-    positions[i * 3] = Math.cos(angle) * radius;
-    positions[i * 3 + 1] = (Math.random() - 0.5) * 0.3;
-    positions[i * 3 + 2] = Math.sin(angle) * radius * 0.6;
-    sizes[i] = 0.8 + Math.random() * 1.5;
-  }
-  const geo = new THREE.BufferGeometry();
-  geo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-  geo.setAttribute('size', new THREE.BufferAttribute(sizes, 1));
-
-  const mat = new THREE.PointsMaterial({
-    color,
-    size: 0.025,
-    transparent: true,
-    opacity: 0.6,
-    sizeAttenuation: true,
-    blending: THREE.AdditiveBlending,
-    depthWrite: false,
-  });
-  return new THREE.Points(geo, mat);
-}
-
-/* ====================== Easing ====================== */
-
-function easeOutElastic(t: number): number {
-  if (t === 0 || t === 1) return t;
-  return Math.pow(2, -10 * t) * Math.sin((t * 10 - 0.75) * (2 * Math.PI) / 3) + 1;
-}
-
-function easeInOutCubic(t: number): number {
-  return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
-}
-
-/* ====================== Ambient particles ====================== */
-
-function createParticleField(count: number, color: THREE.Color): THREE.Points {
-  const positions = new Float32Array(count * 3);
-  for (let i = 0; i < count; i++) {
-    positions[i * 3] = (Math.random() - 0.5) * 18;
-    positions[i * 3 + 1] = (Math.random() - 0.5) * 10;
-    positions[i * 3 + 2] = (Math.random() - 0.5) * 8;
-  }
-  const geo = new THREE.BufferGeometry();
-  geo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-  const mat = new THREE.PointsMaterial({
-    color,
-    size: 0.012,
-    transparent: true,
-    opacity: 0.2,
-    sizeAttenuation: true,
-    blending: THREE.AdditiveBlending,
-    depthWrite: false,
-  });
-  return new THREE.Points(geo, mat);
-}
-
-/* ====================== Model state ====================== */
-
-interface ModelState {
-  group: THREE.Group;
-  wireframe: THREE.LineSegments;
-  glowWireframe: THREE.LineSegments; // additive glow copy
-  solidMesh: THREE.Mesh;
-  label: string;
-  hovered: boolean;
-  dragging: boolean;
-  dragStart: THREE.Vector2;
-  dragRotation: THREE.Euler;
-  targetDragRotX: number;
-  targetDragRotY: number;
-  currentDragRotX: number;
-  currentDragRotY: number;
-  exploding: boolean;
-  explodeProgress: number;
-  explodeTime: number;
-  explodeParts: { offset: THREE.Vector3 }[];
-  floatPhase: number;
-  currentScale: number;
-  currentOpacity: number;
-}
-
-const MODEL_LABELS = ['MOBILE', 'WEB', 'SERVER'];
-
-/* ====================== Main class ====================== */
+const CYCLE_INTERVAL = 5;          // seconds between auto-advance
+const TRANSITION_SPEED = 0.05;     // lerp factor for fade/scale
+const BASE_SCALE = 2.0;
+const SCALE_OUT = 0.001; // scale target when fading out/in (effectively zero)
 
 export class HeroGeometry {
   private renderer: THREE.WebGLRenderer;
   private scene: THREE.Scene;
   private camera: THREE.PerspectiveCamera;
-  private sceneGroup: THREE.Group;
-  private models: ModelState[] = [];
+  private pivot: THREE.Group;           // parent for all models
+  private models: ModelEntry[] = [];
   private particles!: THREE.Points;
-  private orbitRing!: THREE.Points;
+  private glowSprite!: THREE.Sprite;
+  private glowAnchor!: THREE.Group;     // scene-level group for glow (no rotation)
 
-  // Carousel
   private activeIndex = 0;
-  private carouselTimer = 0;
-  private readonly CAROUSEL_INTERVAL = 4.0;
-  private readonly TRANSITION_SPEED = 0.055;
-  private entranceComplete = false;
-  private entranceStart = 0;
+  private lastSwitch = 0;               // clock time of last carousel change
+  private allLoaded = false;
+  private firstModelReady = false;      // true once the first model is loaded
+  private entranceProgress = 0;         // 0→1 smooth entrance
+  private loadedCount = 0;              // how many models have loaded
 
-  // Mouse / scroll
+  // Mouse & scroll
   private targetMouseX = 0;
   private targetMouseY = 0;
   private currentMouseX = 0;
@@ -451,22 +78,54 @@ export class HeroGeometry {
   private currentScroll = 0;
   private clock = new THREE.Clock();
   private disposed = false;
-  private raycaster = new THREE.Raycaster();
   private mouse = new THREE.Vector2();
+  private raycaster = new THREE.Raycaster();
   private orientationSupported = false;
   private targetOrientX = 0;
   private targetOrientY = 0;
-  private dragModel: ModelState | null = null;
 
-  // Right-side position
-  private readonly MODEL_POS = new THREE.Vector3(2.8, 0, 0);
-  private readonly MODEL_ROT = new THREE.Euler(0.12, -0.2, 0.03);
-  private readonly ACTIVE_SCALE = 1.7;
+  // Hover fidget rotation — mouse movement over model rotates it
+  private hovered = false;
+  private hoverRotX = 0;      // target from hover
+  private hoverRotY = 0;
+  private currentHoverRotX = 0;
+  private currentHoverRotY = 0;
+  private lastMouseX = 0;
+  private lastMouseY = 0;
+
+  // Drag rotation (click+drag for free orbit)
+  private dragging = false;
+  private dragStart = new THREE.Vector2();
+  private dragRotation = new THREE.Euler();
+  private targetDragRotX = 0;
+  private targetDragRotY = 0;
+  private currentDragRotX = 0;
+  private currentDragRotY = 0;
+  private userRotOffsetX = 0;
+  private userRotOffsetY = 0;
+  private autoRotYAtDragStart = 0;
+
+  // Glow hover smoothing
+  private glowHoverFactor = 0;
+
+  // Click animation
+  private clickBurstActive = false;
+  private clickBurstStart = 0;
+  private clickBurstDuration = 1.2;
+  private clickSpinStart = 0;       // Y rotation at click start
+  private clickDebounce = false;    // prevent rapid re-triggers
+  private accentColorObj!: THREE.Color;
+  private burstParticles!: THREE.Points;
+  private burstParticleVelocities: THREE.Vector3[] = [];
+  private shockwaveRing!: THREE.Mesh;
+  private burstLight!: THREE.PointLight;
+  // Edge-line overlays (created per-model on first click)
+  private edgeOverlays: Map<THREE.Mesh, { lines: THREE.LineSegments; lineMat: THREE.LineBasicMaterial }> = new Map();
 
   // Bound handlers
   private _onMouseMove: (e: MouseEvent) => void;
   private _onMouseDown: (e: MouseEvent) => void;
-  private _onMouseUp: () => void;
+  private _onMouseUp: (e: MouseEvent) => void;
   private _onClick: (e: MouseEvent) => void;
   private _onResize: () => void;
   private _onOrientation: (e: DeviceOrientationEvent) => void;
@@ -474,12 +133,11 @@ export class HeroGeometry {
   private _onTouchMove: (e: TouchEvent) => void;
   private _onTouchEnd: () => void;
 
-  onLabelChange?: (label: string, index: number) => void;
-
   constructor(private config: HeroGeometryConfig) {
-    const fg = config.foregroundColor ?? '#FFFFFF';
     const accent = config.accentColor ?? '#F5A623';
+    this.accentColorObj = new THREE.Color(accent);
 
+    /* ---- Renderer ---- */
     this.renderer = new THREE.WebGLRenderer({
       canvas: config.canvas,
       antialias: true,
@@ -488,17 +146,30 @@ export class HeroGeometry {
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     this.renderer.setSize(window.innerWidth, window.innerHeight);
     this.renderer.setClearColor(0x000000, 0);
+    this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    this.renderer.toneMappingExposure = 1.4;
 
+    /* ---- Scene ---- */
     this.scene = new THREE.Scene();
-    this.sceneGroup = new THREE.Group();
-    this.scene.add(this.sceneGroup);
+    this.pivot = new THREE.Group();
+    this.pivot.position.set(2.5, 0, 0);
+    this.pivot.visible = false;  // hidden until first model loads
+    this.scene.add(this.pivot);
 
-    this.camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 100);
-    this.camera.position.z = 8;
+    /* ---- Camera ---- */
+    this.camera = new THREE.PerspectiveCamera(
+      45, window.innerWidth / window.innerHeight, 0.1, 100,
+    );
+    this.camera.position.z = 6;
 
-    this.buildModels(fg, accent);
-    this.buildEffects(fg, accent);
+    /* ---- Setup ---- */
+    this.setupLighting(accent);
+    this.buildGlow(accent);
+    this.buildClickEffects(accent);
+    this.buildParticles(accent);
+    this.loadAllModels();
 
+    /* ---- Events ---- */
     this._onMouseMove = this.onMouseMove.bind(this);
     this._onMouseDown = this.onMouseDown.bind(this);
     this._onMouseUp = this.onMouseUp.bind(this);
@@ -508,133 +179,293 @@ export class HeroGeometry {
     this._onTouchStart = this.onTouchStart.bind(this);
     this._onTouchMove = this.onTouchMove.bind(this);
     this._onTouchEnd = this.onTouchEnd.bind(this);
-
     this.bindEvents();
-    this.entranceStart = this.clock.getElapsedTime();
     this.startLoop();
   }
 
-  /* ------------------------------------------------------------------ */
-  /*  Build                                                              */
-  /* ------------------------------------------------------------------ */
+  /* ==================================================================
+   *  Lighting
+   * ================================================================== */
 
-  private buildModels(fg: string, accent: string) {
-    const fgColor = new THREE.Color(fg);
+  private setupLighting(accent: string) {
     const accentColor = new THREE.Color(accent);
 
-    const builders = [
-      { build: buildPhoneModel, label: 'mobile' },
-      { build: buildMonitorModel, label: 'web' },
-      { build: buildServerModel, label: 'server' },
-    ];
+    const ambient = new THREE.AmbientLight(0x404060, 0.5);
+    this.scene.add(ambient);
 
-    builders.forEach((def, index) => {
-      const geo = def.build();
-      const group = new THREE.Group();
+    // Key — warm accent upper-right
+    const key = new THREE.DirectionalLight(accentColor, 2.8);
+    key.position.set(4, 3, 2);
+    this.scene.add(key);
 
-      // Solid mesh — dark translucent fill
-      const solidMat = new THREE.MeshBasicMaterial({
-        color: fgColor,
-        transparent: true,
-        opacity: 0,
-        side: THREE.DoubleSide,
-        depthWrite: false,
-      });
-      const solidMesh = new THREE.Mesh(geo, solidMat);
+    // Fill — cool blue left
+    const fill = new THREE.DirectionalLight(0x4466ff, 0.9);
+    fill.position.set(-3, 1, 2);
+    this.scene.add(fill);
 
-      // Primary wireframe — accent colored
-      const edgesGeo = new THREE.EdgesGeometry(geo, 12);
-      const wireMat = new THREE.LineBasicMaterial({
-        color: accentColor,
-        transparent: true,
-        opacity: 0,
-      });
-      const wireframe = new THREE.LineSegments(edgesGeo, wireMat);
+    // Rim — behind for silhouette
+    const rim = new THREE.DirectionalLight(0xffffff, 1.2);
+    rim.position.set(0, 2, -4);
+    this.scene.add(rim);
 
-      // Glow wireframe — additive blended copy for bloom effect
-      const glowMat = new THREE.LineBasicMaterial({
-        color: accentColor,
-        transparent: true,
-        opacity: 0,
-        blending: THREE.AdditiveBlending,
-        depthWrite: false,
-      });
-      const glowWireframe = new THREE.LineSegments(edgesGeo.clone(), glowMat);
-      glowWireframe.scale.setScalar(1.008); // slightly larger for glow halo
+    // Accent point
+    const point = new THREE.PointLight(accentColor, 3, 10, 2);
+    point.position.set(3, 1, 2);
+    this.scene.add(point);
+  }
 
-      group.add(solidMesh);
-      group.add(wireframe);
-      group.add(glowWireframe);
-      group.position.copy(this.MODEL_POS);
-      group.rotation.copy(this.MODEL_ROT);
-      group.scale.setScalar(0);
+  /* ==================================================================
+   *  Glow sprite behind the model
+   * ================================================================== */
 
-      this.sceneGroup.add(group);
+  private buildGlow(accent: string) {
+    const canvas = document.createElement('canvas');
+    canvas.width = 256;
+    canvas.height = 256;
+    const ctx = canvas.getContext('2d')!;
 
-      // Explode offsets
-      const explodeParts: { offset: THREE.Vector3 }[] = [];
-      const vertCount = edgesGeo.getAttribute('position').count;
-      const chunkSize = Math.max(Math.floor(vertCount / 16), 6);
-      for (let i = 0; i < Math.ceil(vertCount / chunkSize); i++) {
-        explodeParts.push({
-          offset: new THREE.Vector3(
-            (Math.random() - 0.5) * 4,
-            (Math.random() - 0.5) * 4,
-            (Math.random() - 0.5) * 4,
-          ),
-        });
-      }
+    // Radial gradient — accent color to transparent
+    const grad = ctx.createRadialGradient(128, 128, 0, 128, 128, 128);
+    grad.addColorStop(0, accent + 'AA');   // center: semi-opaque
+    grad.addColorStop(0.3, accent + '55');
+    grad.addColorStop(0.7, accent + '18');
+    grad.addColorStop(1, accent + '00');   // edge: transparent
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, 256, 256);
 
-      this.models.push({
-        group,
-        wireframe,
-        glowWireframe,
-        solidMesh,
-        label: def.label,
-        hovered: false,
-        dragging: false,
-        dragStart: new THREE.Vector2(),
-        dragRotation: new THREE.Euler(),
-        targetDragRotX: 0,
-        targetDragRotY: 0,
-        currentDragRotX: 0,
-        currentDragRotY: 0,
-        exploding: false,
-        explodeProgress: 0,
-        explodeTime: 0,
-        explodeParts,
-        floatPhase: index * 2.1,
-        currentScale: 0,
-        currentOpacity: 0,
-      });
+    const tex = new THREE.CanvasTexture(canvas);
+    const mat = new THREE.SpriteMaterial({
+      map: tex,
+      transparent: true,
+      blending: THREE.AdditiveBlending,
+      depthWrite: false,
+      depthTest: false,
+      opacity: 0.6,
+    });
+    this.glowSprite = new THREE.Sprite(mat);
+    this.glowSprite.scale.set(5, 5, 1);
+    this.glowSprite.position.set(0, 0, -1.2); // behind the models
+    // Add glow to a scene-level anchor so it follows pivot position but not rotation
+    this.glowAnchor = new THREE.Group();
+    this.glowAnchor.position.copy(this.pivot.position);
+    this.glowAnchor.add(this.glowSprite);
+    this.scene.add(this.glowAnchor);
+  }
+
+  /* ==================================================================
+   *  Click burst effects (particles, shockwave ring, light)
+   * ================================================================== */
+
+  private buildClickEffects(accent: string) {
+    const accentColor = new THREE.Color(accent);
+
+    // --- Burst particles (spawn from center, fly outward) ---
+    const burstCount = 60;
+    const bPositions = new Float32Array(burstCount * 3);
+    const bColors = new Float32Array(burstCount * 3);
+    this.burstParticleVelocities = [];
+    const white = new THREE.Color(0xffffff);
+    for (let i = 0; i < burstCount; i++) {
+      bPositions[i * 3] = 0;
+      bPositions[i * 3 + 1] = 0;
+      bPositions[i * 3 + 2] = 0;
+      // Random mix of accent and white
+      const mix = Math.random();
+      const c = accentColor.clone().lerp(white, mix * 0.6);
+      bColors[i * 3] = c.r;
+      bColors[i * 3 + 1] = c.g;
+      bColors[i * 3 + 2] = c.b;
+      // Random outward velocity
+      this.burstParticleVelocities.push(new THREE.Vector3(
+        (Math.random() - 0.5) * 2,
+        (Math.random() - 0.5) * 2,
+        (Math.random() - 0.5) * 2,
+      ).normalize().multiplyScalar(2 + Math.random() * 4));
+    }
+    const bGeo = new THREE.BufferGeometry();
+    bGeo.setAttribute('position', new THREE.BufferAttribute(bPositions, 3));
+    bGeo.setAttribute('color', new THREE.BufferAttribute(bColors, 3));
+    const bMat = new THREE.PointsMaterial({
+      size: 0.06,
+      vertexColors: true,
+      transparent: true,
+      opacity: 0,
+      blending: THREE.AdditiveBlending,
+      depthWrite: false,
+      depthTest: false,
+      sizeAttenuation: true,
+    });
+    this.burstParticles = new THREE.Points(bGeo, bMat);
+    this.burstParticles.visible = false;
+    this.scene.add(this.burstParticles);
+
+    // --- Shockwave ring ---
+    const ringGeo = new THREE.RingGeometry(0.3, 0.5, 64);
+    const ringMat = new THREE.MeshBasicMaterial({
+      color: accentColor,
+      transparent: true,
+      opacity: 0,
+      side: THREE.DoubleSide,
+      blending: THREE.AdditiveBlending,
+      depthWrite: false,
+      depthTest: false,
+    });
+    this.shockwaveRing = new THREE.Mesh(ringGeo, ringMat);
+    this.shockwaveRing.visible = false;
+    this.scene.add(this.shockwaveRing);
+
+    // --- Burst point light ---
+    this.burstLight = new THREE.PointLight(accentColor, 0, 15, 2);
+    this.scene.add(this.burstLight);
+  }
+
+  /* ==================================================================
+   *  Load all GLB models
+   * ================================================================== */
+
+  private loadAllModels() {
+    const loader = new GLTFLoader();
+    const basePath = import.meta.env.BASE_URL || '/';
+
+    MODEL_FILES.forEach((file, i) => {
+      const entry: ModelEntry = {
+        group: new THREE.Group(),
+        loaded: false,
+        currentOpacity: i === 0 ? 1 : 0,
+        targetOpacity: i === 0 ? 1 : 0,
+        currentScale: BASE_SCALE,
+        targetScale: BASE_SCALE,
+      };
+      this.pivot.add(entry.group);
+      this.models.push(entry);
+
+      loader.load(
+        `${basePath}models/${file}`,
+        (gltf) => {
+          const model = gltf.scene;
+
+          // Normalize size so all models look roughly the same scale
+          const box = new THREE.Box3().setFromObject(model);
+          const size = box.getSize(new THREE.Vector3());
+          const maxDim = Math.max(size.x, size.y, size.z);
+          const normScale = 1.8 / maxDim;
+          model.scale.setScalar(normScale);
+
+          // Apply per-model rotation correction
+          const [rx, ry, rz] = MODEL_ROTATIONS[i];
+          if (rx || ry || rz) {
+            model.rotation.set(rx, ry, rz);
+          }
+
+          // Center the model AFTER scaling & rotation so origin is correct
+          const scaledBox = new THREE.Box3().setFromObject(model);
+          const center = scaledBox.getCenter(new THREE.Vector3());
+          model.position.sub(center);
+
+          // Enable transparency for carousel fading
+          model.traverse((child) => {
+            if ((child as THREE.Mesh).isMesh) {
+              const mesh = child as THREE.Mesh;
+              const mats = Array.isArray(mesh.material) ? mesh.material : [mesh.material];
+              mats.forEach((mat) => {
+                mat.transparent = true;
+                mat.depthWrite = true;
+                mat.opacity = i === 0 ? 1 : 0;
+                // Force double-sided for better visibility on all models
+                mat.side = THREE.DoubleSide;
+              });
+            }
+          });
+
+          entry.group.add(model);
+          entry.loaded = true;
+
+          // Non-active models start invisible
+          if (i !== 0) {
+            entry.group.visible = false;
+          }
+
+          // Show pivot once the first model is ready
+          if (i === 0 && !this.firstModelReady) {
+            this.firstModelReady = true;
+            this.pivot.visible = true;
+            this.entranceProgress = 0;
+          }
+
+          // Track loading progress
+          this.loadedCount++;
+          this.config.onProgress?.(this.loadedCount, MODEL_FILES.length);
+
+          // Check if all loaded
+          if (this.models.every(m => m.loaded)) {
+            this.allLoaded = true;
+            this.lastSwitch = this.clock.getElapsedTime();
+            this.config.onAllLoaded?.();
+          }
+        },
+        undefined,
+        (err) => console.warn(`Failed to load ${file}:`, err),
+      );
     });
   }
 
-  private buildEffects(fg: string, accent: string) {
-    const fgColor = new THREE.Color(fg);
-    const accentColor = new THREE.Color(accent);
+  /* ==================================================================
+   *  Public — go to specific slide
+   * ================================================================== */
 
-    this.particles = createParticleField(80, fgColor);
-    this.sceneGroup.add(this.particles);
-
-    this.orbitRing = createOrbitRing(60, 1.8, accentColor);
-    this.orbitRing.position.copy(this.MODEL_POS);
-    this.sceneGroup.add(this.orbitRing);
+  goToSlide(index: number) {
+    if (index === this.activeIndex || !this.allLoaded) return;
+    this.setActiveModel(index);
   }
 
-  /* ------------------------------------------------------------------ */
-  /*  Carousel                                                           */
-  /* ------------------------------------------------------------------ */
+  private setActiveModel(index: number) {
+    // Fade + scale out current
+    this.models[this.activeIndex].targetOpacity = 0;
+    this.models[this.activeIndex].targetScale = SCALE_OUT;
 
-  private advanceCarousel() {
-    this.activeIndex = (this.activeIndex + 1) % this.models.length;
-    this.carouselTimer = 0;
-    this.onLabelChange?.(MODEL_LABELS[this.activeIndex], this.activeIndex);
+    this.activeIndex = index;
+
+    // Fade + scale in next
+    const next = this.models[this.activeIndex];
+    next.group.visible = true;
+    next.targetOpacity = 1;
+    next.currentScale = SCALE_OUT;   // start slightly small
+    next.targetScale = BASE_SCALE;   // grow to full
+    this.lastSwitch = this.clock.getElapsedTime();
+
+    this.config.onSlideChange?.(index);
   }
 
-  /* ------------------------------------------------------------------ */
-  /*  Events                                                             */
-  /* ------------------------------------------------------------------ */
+  /* ==================================================================
+   *  Particles
+   * ================================================================== */
+
+  private buildParticles(accent: string) {
+    const count = 80;
+    const positions = new Float32Array(count * 3);
+    for (let i = 0; i < count; i++) {
+      positions[i * 3] = (Math.random() - 0.5) * 16;
+      positions[i * 3 + 1] = (Math.random() - 0.5) * 10;
+      positions[i * 3 + 2] = (Math.random() - 0.5) * 8;
+    }
+    const geo = new THREE.BufferGeometry();
+    geo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+    const mat = new THREE.PointsMaterial({
+      color: new THREE.Color(accent),
+      size: 0.018,
+      transparent: true,
+      opacity: 0.25,
+      sizeAttenuation: true,
+      blending: THREE.AdditiveBlending,
+      depthWrite: false,
+    });
+    this.particles = new THREE.Points(geo, mat);
+    this.scene.add(this.particles);
+  }
+
+  /* ==================================================================
+   *  Events
+   * ================================================================== */
 
   private onMouseMove(e: MouseEvent) {
     this.targetMouseX = (e.clientX / window.innerWidth - 0.5) * 2;
@@ -642,52 +473,112 @@ export class HeroGeometry {
     this.mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
     this.mouse.y = -(e.clientY / window.innerHeight) * 2 + 1;
 
-    if (this.dragModel?.dragging) {
-      const dx = e.clientX - this.dragModel.dragStart.x;
-      const dy = e.clientY - this.dragModel.dragStart.y;
-      this.dragModel.targetDragRotY = this.dragModel.dragRotation.y + dx * 0.008;
-      this.dragModel.targetDragRotX = this.dragModel.dragRotation.x + dy * 0.008;
+    if (this.dragging) {
+      const dx = e.clientX - this.dragStart.x;
+      const dy = e.clientY - this.dragStart.y;
+      this.targetDragRotY = this.userRotOffsetY + dx * 0.008;
+      this.targetDragRotX = this.userRotOffsetX + dy * 0.008;
     }
+
+    // Hover fidget — mouse delta directly pushes rotation
+    if (this.hovered && !this.dragging) {
+      const dx = e.clientX - this.lastMouseX;
+      const dy = e.clientY - this.lastMouseY;
+      this.hoverRotY += dx * 0.006;
+      this.hoverRotX += dy * 0.003;
+    }
+    this.lastMouseX = e.clientX;
+    this.lastMouseY = e.clientY;
+
     this.updateHover();
   }
 
   private onMouseDown(e: MouseEvent) {
+    if (!this.allLoaded) return;
     this.mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
     this.mouse.y = -(e.clientY / window.innerHeight) * 2 + 1;
-    const model = this.models[this.activeIndex];
     this.raycaster.setFromCamera(this.mouse, this.camera);
-    const hits = this.raycaster.intersectObject(model.solidMesh);
+    const hits = this.raycaster.intersectObject(this.pivot, true);
     if (hits.length > 0) {
-      model.dragging = true;
-      model.dragStart.set(e.clientX, e.clientY);
-      model.dragRotation.copy(model.group.rotation);
-      this.dragModel = model;
+      this.dragging = true;
+      this.dragStart.set(e.clientX, e.clientY);
+      this.autoRotYAtDragStart = this.clock.getElapsedTime() * 0.15;
+      // Snapshot current user offsets so drag is relative
+      this.currentDragRotX = this.userRotOffsetX;
+      this.currentDragRotY = this.userRotOffsetY;
+      this.targetDragRotX = this.userRotOffsetX;
+      this.targetDragRotY = this.userRotOffsetY;
       this.config.canvas.style.cursor = 'grabbing';
-      this.carouselTimer = -999;
     }
   }
 
-  private onMouseUp() {
-    if (this.dragModel?.dragging) {
-      this.dragModel.dragging = false;
-      this.dragModel = null;
-      this.carouselTimer = 0;
-      this.config.canvas.style.cursor = this.models[this.activeIndex].hovered ? 'pointer' : 'default';
+  private onMouseUp(e: MouseEvent) {
+    if (this.dragging) {
+      // Persist the user's rotation offset
+      this.userRotOffsetX = this.currentDragRotX;
+      this.userRotOffsetY = this.currentDragRotY;
+      this.dragging = false;
+      this.config.canvas.style.cursor = this.hovered ? 'grab' : 'default';
     }
   }
 
   private onClickHandler(e: MouseEvent) {
+    if (!this.allLoaded || this.clickDebounce) return;
     this.mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
     this.mouse.y = -(e.clientY / window.innerHeight) * 2 + 1;
-    const model = this.models[this.activeIndex];
     this.raycaster.setFromCamera(this.mouse, this.camera);
-    const hits = this.raycaster.intersectObject(model.solidMesh);
-    if (hits.length > 0 && !model.exploding) {
-      model.exploding = true;
-      model.explodeProgress = 0;
-      model.explodeTime = this.clock.getElapsedTime();
-      this.carouselTimer = this.CAROUSEL_INTERVAL - 0.3;
+    const hits = this.raycaster.intersectObject(this.pivot, true);
+    if (hits.length > 0) {
+      this.triggerClickAnimation();
     }
+  }
+
+  private triggerClickAnimation() {
+    this.clickBurstActive = true;
+    this.clickDebounce = true;
+    this.clickBurstStart = this.clock.getElapsedTime();
+    this.clickSpinStart = this.userRotOffsetY;
+
+    // Build edge-line overlays for active model if not cached
+    if (this.allLoaded) {
+      const active = this.models[this.activeIndex];
+      active.group.traverse((child) => {
+        if ((child as THREE.Mesh).isMesh) {
+          const mesh = child as THREE.Mesh;
+          if (!this.edgeOverlays.has(mesh)) {
+            const edgesGeo = new THREE.EdgesGeometry(mesh.geometry, 30);
+            const lineMat = new THREE.LineBasicMaterial({
+              color: this.accentColorObj,
+              transparent: true,
+              opacity: 0,
+              depthTest: true,
+              depthWrite: false,
+              blending: THREE.AdditiveBlending,
+            });
+            const lines = new THREE.LineSegments(edgesGeo, lineMat);
+            lines.visible = false;
+            mesh.add(lines); // child of mesh so it inherits transform
+            this.edgeOverlays.set(mesh, { lines, lineMat });
+          }
+        }
+      });
+    }
+
+    // Reset burst particles to pivot center
+    const pos = this.burstParticles.geometry.getAttribute('position') as THREE.BufferAttribute;
+    for (let i = 0; i < pos.count; i++) {
+      pos.setXYZ(i, this.pivot.position.x, this.pivot.position.y, this.pivot.position.z);
+    }
+    pos.needsUpdate = true;
+    this.burstParticles.visible = true;
+    (this.burstParticles.material as THREE.PointsMaterial).opacity = 1;
+
+    // Reset shockwave
+    this.shockwaveRing.visible = true;
+    this.shockwaveRing.scale.set(1, 1, 1);
+    this.shockwaveRing.position.copy(this.pivot.position);
+    this.shockwaveRing.position.z += 0.3;
+    (this.shockwaveRing.material as THREE.MeshBasicMaterial).opacity = 0.8;
   }
 
   private onResize() {
@@ -705,92 +596,84 @@ export class HeroGeometry {
   }
 
   private onTouchStart(e: TouchEvent) {
-    if (e.touches.length !== 1) return;
+    if (!this.allLoaded || e.touches.length !== 1) return;
     const t = e.touches[0];
     this.mouse.x = (t.clientX / window.innerWidth) * 2 - 1;
     this.mouse.y = -(t.clientY / window.innerHeight) * 2 + 1;
-    const model = this.models[this.activeIndex];
     this.raycaster.setFromCamera(this.mouse, this.camera);
-    const hits = this.raycaster.intersectObject(model.solidMesh);
+    const hits = this.raycaster.intersectObject(this.pivot, true);
     if (hits.length > 0) {
-      model.dragging = true;
-      model.dragStart.set(t.clientX, t.clientY);
-      model.dragRotation.copy(model.group.rotation);
-      this.dragModel = model;
-      this.carouselTimer = -999;
+      this.dragging = true;
+      this.dragStart.set(t.clientX, t.clientY);
+      this.autoRotYAtDragStart = this.clock.getElapsedTime() * 0.15;
+      this.currentDragRotX = this.userRotOffsetX;
+      this.currentDragRotY = this.userRotOffsetY;
+      this.targetDragRotX = this.userRotOffsetX;
+      this.targetDragRotY = this.userRotOffsetY;
     }
   }
 
   private onTouchMove(e: TouchEvent) {
-    if (!this.dragModel?.dragging || e.touches.length !== 1) return;
+    if (!this.dragging || e.touches.length !== 1) return;
     const t = e.touches[0];
-    const dx = t.clientX - this.dragModel.dragStart.x;
-    const dy = t.clientY - this.dragModel.dragStart.y;
-    this.dragModel.targetDragRotY = this.dragModel.dragRotation.y + dx * 0.008;
-    this.dragModel.targetDragRotX = this.dragModel.dragRotation.x + dy * 0.008;
+    const dx = t.clientX - this.dragStart.x;
+    const dy = t.clientY - this.dragStart.y;
+    this.targetDragRotY = this.userRotOffsetY + dx * 0.008;
+    this.targetDragRotX = this.userRotOffsetX + dy * 0.008;
   }
 
   private onTouchEnd() {
-    if (this.dragModel?.dragging) {
-      const dist = Math.abs(this.dragModel.targetDragRotX - this.dragModel.dragRotation.x)
-        + Math.abs(this.dragModel.targetDragRotY - this.dragModel.dragRotation.y);
-      if (dist < 0.05 && !this.dragModel.exploding) {
-        this.dragModel.exploding = true;
-        this.dragModel.explodeProgress = 0;
-        this.dragModel.explodeTime = this.clock.getElapsedTime();
-        this.carouselTimer = this.CAROUSEL_INTERVAL - 0.3;
+    if (this.dragging) {
+      // If barely moved, treat as a tap → click animation
+      const dx = this.targetDragRotX - this.userRotOffsetX;
+      const dy = this.targetDragRotY - this.userRotOffsetY;
+      if (Math.abs(dx) < 0.02 && Math.abs(dy) < 0.02) {
+        this.triggerClickAnimation();
       }
-      this.dragModel.dragging = false;
-      this.dragModel = null;
-      this.carouselTimer = Math.max(this.carouselTimer, 0);
+
+      this.userRotOffsetX = this.currentDragRotX;
+      this.userRotOffsetY = this.currentDragRotY;
+      this.dragging = false;
     }
   }
 
   private updateHover() {
-    const model = this.models[this.activeIndex];
+    if (!this.allLoaded) return;
     this.raycaster.setFromCamera(this.mouse, this.camera);
-    const hits = this.raycaster.intersectObject(model.solidMesh);
-    const nowHovered = hits.length > 0;
-    if (nowHovered !== model.hovered) {
-      model.hovered = nowHovered;
-      if (!this.dragModel?.dragging) {
-        this.config.canvas.style.cursor = nowHovered ? 'pointer' : 'default';
-      }
+    const hits = this.raycaster.intersectObject(this.pivot, true);
+    this.hovered = hits.length > 0;
+    if (!this.dragging) {
+      this.config.canvas.style.cursor = this.hovered ? 'grab' : 'default';
     }
   }
 
   private bindEvents() {
     const canvas = this.config.canvas;
     window.addEventListener('mousemove', this._onMouseMove, { passive: true });
-    canvas.addEventListener('mousedown', this._onMouseDown);
+    window.addEventListener('mousedown', this._onMouseDown);
     window.addEventListener('mouseup', this._onMouseUp);
-    canvas.addEventListener('click', this._onClick);
+    window.addEventListener('click', this._onClick);
     window.addEventListener('resize', this._onResize);
     window.addEventListener('deviceorientation', this._onOrientation, { passive: true });
-    canvas.addEventListener('touchstart', this._onTouchStart, { passive: true });
-    canvas.addEventListener('touchmove', this._onTouchMove, { passive: true });
-    canvas.addEventListener('touchend', this._onTouchEnd);
+    window.addEventListener('touchstart', this._onTouchStart, { passive: true });
+    window.addEventListener('touchmove', this._onTouchMove, { passive: true });
+    window.addEventListener('touchend', this._onTouchEnd);
   }
 
   setScrollProgress(p: number) {
     this.scrollProgress = p;
   }
 
-  /* ------------------------------------------------------------------ */
-  /*  Render loop                                                        */
-  /* ------------------------------------------------------------------ */
+  /* ==================================================================
+   *  Render loop
+   * ================================================================== */
 
   private startLoop() {
-    let lastTime = this.clock.getElapsedTime();
-
     raf.add('hero-geometry', () => {
       if (this.disposed) return;
       const t = this.clock.getElapsedTime();
-      const dt = t - lastTime;
-      lastTime = t;
-      const elapsed = t - this.entranceStart;
 
-      // Smooth mouse
+      /* ---- Mouse smoothing ---- */
       if (this.orientationSupported) {
         this.currentMouseX = lerp(this.currentMouseX, this.targetOrientY, 0.04);
         this.currentMouseY = lerp(this.currentMouseY, this.targetOrientX, 0.04);
@@ -799,129 +682,244 @@ export class HeroGeometry {
         this.currentMouseY = lerp(this.currentMouseY, this.targetMouseY, 0.04);
       }
 
+      /* ---- Scroll ---- */
       this.currentScroll = lerp(this.currentScroll, this.scrollProgress, 0.06);
-
-      // Scene rotation
-      this.sceneGroup.rotation.y = this.currentMouseX * 0.1;
-      this.sceneGroup.rotation.x = this.currentMouseY * 0.05;
-
-      // Camera + fade
       const scrollNorm = Math.min(this.currentScroll / 0.3, 1);
-      this.camera.position.z = lerp(8, 3, scrollNorm);
+      this.camera.position.z = lerp(6, 3, scrollNorm);
       const canvasOpacity = scrollNorm < 1 ? 1 : Math.max(0, 1 - (this.currentScroll - 0.3) / 0.15);
       this.renderer.domElement.style.opacity = String(canvasOpacity);
 
-      // Entrance
-      if (!this.entranceComplete && elapsed > 0.6) {
-        this.entranceComplete = true;
-        this.onLabelChange?.(MODEL_LABELS[0], 0);
-      }
-
-      // Carousel
-      if (this.entranceComplete && this.carouselTimer >= 0) {
-        this.carouselTimer += dt;
-        if (this.carouselTimer >= this.CAROUSEL_INTERVAL) this.advanceCarousel();
-      }
-
-      // Update models
-      for (let i = 0; i < this.models.length; i++) {
-        const model = this.models[i];
-        const isActive = i === this.activeIndex && this.entranceComplete;
-
-        const hoverBoost = model.hovered ? 1.08 : 1.0;
-        const targetScale = isActive ? this.ACTIVE_SCALE * hoverBoost : 0;
-        const targetOpacity = isActive ? 1 : 0;
-
-        // Smooth transitions
-        const speed = isActive && model.currentScale < targetScale * 0.3 ? 0.1 : this.TRANSITION_SPEED;
-        model.currentScale = lerp(model.currentScale, targetScale, speed);
-        model.currentOpacity = lerp(model.currentOpacity, targetOpacity, this.TRANSITION_SPEED);
-
-        model.group.scale.setScalar(Math.max(model.currentScale, 0.001));
-
-        // Accent wireframe opacity — brighter on hover with pulse
-        const basePulse = model.hovered ? 0.5 + Math.sin(t * 4) * 0.15 : 0.35;
-        const glowPulse = model.hovered ? 0.2 + Math.sin(t * 4) * 0.08 : 0.1;
-
-        (model.wireframe.material as THREE.LineBasicMaterial).opacity = model.currentOpacity * basePulse;
-        (model.glowWireframe.material as THREE.LineBasicMaterial).opacity = model.currentOpacity * glowPulse;
-        (model.solidMesh.material as THREE.MeshBasicMaterial).opacity = model.currentOpacity * 0.03;
-
-        // Floating
-        const floatY = Math.sin(t * 0.5 + model.floatPhase) * 0.18;
-        const floatX = Math.sin(t * 0.35 + model.floatPhase + 1) * 0.08;
-        const tiltZ = Math.sin(t * 0.25 + model.floatPhase) * 0.04;
-
-        if (!model.dragging) {
-          model.group.position.x = this.MODEL_POS.x + floatX;
-          model.group.position.y = this.MODEL_POS.y + floatY;
-          model.group.position.z = this.MODEL_POS.z;
-
-          model.currentDragRotX = lerp(model.currentDragRotX, 0, 0.025);
-          model.currentDragRotY = lerp(model.currentDragRotY, 0, 0.025);
-
-          model.group.rotation.x = this.MODEL_ROT.x + tiltZ + model.currentDragRotX;
-          model.group.rotation.y = this.MODEL_ROT.y + Math.sin(t * 0.2 + model.floatPhase) * 0.1 + model.currentDragRotY;
-          model.group.rotation.z = this.MODEL_ROT.z + tiltZ * 0.5;
-        } else {
-          model.currentDragRotX = lerp(model.currentDragRotX, model.targetDragRotX, 0.12);
-          model.currentDragRotY = lerp(model.currentDragRotY, model.targetDragRotY, 0.12);
-          model.group.rotation.x = model.currentDragRotX;
-          model.group.rotation.y = model.currentDragRotY;
-        }
-
-        // Explode
-        if (model.exploding) {
-          const dur = 1.6;
-          const since = t - model.explodeTime;
-          if (since < dur / 2) {
-            model.explodeProgress = easeOutElastic(Math.min(since / (dur / 2), 1));
-          } else if (since < dur) {
-            model.explodeProgress = 1 - easeInOutCubic(Math.min((since - dur / 2) / (dur / 2), 1));
-          } else {
-            model.exploding = false;
-            model.explodeProgress = 0;
-          }
-
-          // Offset wireframe vertices
-          for (const wf of [model.wireframe, model.glowWireframe]) {
-            const posAttr = wf.geometry.getAttribute('position') as THREE.BufferAttribute;
-            if (!wf.userData.origPositions) {
-              wf.userData.origPositions = new Float32Array(posAttr.array);
-            }
-            const orig = wf.userData.origPositions as Float32Array;
-            const chunkSize = Math.max(Math.floor(posAttr.count / model.explodeParts.length), 1);
-            for (let v = 0; v < posAttr.count; v++) {
-              const ci = Math.min(Math.floor(v / chunkSize), model.explodeParts.length - 1);
-              const ep = model.explodeProgress;
-              posAttr.setXYZ(
-                v,
-                orig[v * 3] + model.explodeParts[ci].offset.x * ep,
-                orig[v * 3 + 1] + model.explodeParts[ci].offset.y * ep,
-                orig[v * 3 + 2] + model.explodeParts[ci].offset.z * ep,
-              );
-            }
-            posAttr.needsUpdate = true;
-            wf.rotation.y = model.explodeProgress * Math.PI * 0.4;
-            wf.rotation.x = model.explodeProgress * Math.PI * 0.2;
-          }
-        } else {
-          model.wireframe.rotation.set(0, 0, 0);
-          model.glowWireframe.rotation.set(0, 0, 0);
+      /* ---- Auto-cycle carousel ---- */
+      if (this.allLoaded && !this.dragging) {
+        if (t - this.lastSwitch >= CYCLE_INTERVAL) {
+          const next = (this.activeIndex + 1) % this.models.length;
+          this.setActiveModel(next);
         }
       }
 
-      // Orbit ring — rotate and sync with active model position
-      const activeModel = this.models[this.activeIndex];
-      if (activeModel) {
-        this.orbitRing.position.copy(activeModel.group.position);
-        this.orbitRing.rotation.y = t * 0.4;
-        this.orbitRing.rotation.x = Math.sin(t * 0.15) * 0.2;
-        const ringOpacity = activeModel.currentOpacity * (activeModel.hovered ? 0.8 : 0.5);
-        (this.orbitRing.material as THREE.PointsMaterial).opacity = ringOpacity;
+      /* ---- Per-model crossfade transitions ---- */
+      for (const entry of this.models) {
+        if (!entry.loaded) continue;
+
+        // Opacity transitions faster than scale for snappy fade
+        entry.currentOpacity = lerp(entry.currentOpacity, entry.targetOpacity, 0.1);
+        // Scale transitions smoothly
+        entry.currentScale = lerp(entry.currentScale, entry.targetScale, TRANSITION_SPEED);
+
+        // Hide fully faded-out models
+        if (entry.currentOpacity < 0.01 && entry.targetOpacity === 0) {
+          entry.group.visible = false;
+          entry.currentOpacity = 0;
+          continue;
+        }
+
+        entry.group.scale.setScalar(entry.currentScale);
+
+        // Update material opacity
+        entry.group.traverse((child) => {
+          if ((child as THREE.Mesh).isMesh) {
+            const mesh = child as THREE.Mesh;
+            const mats = Array.isArray(mesh.material) ? mesh.material : [mesh.material];
+            mats.forEach((mat) => {
+              mat.opacity = entry.currentOpacity;
+            });
+          }
+        });
       }
 
-      // Ambient particles
+      /* ---- Entrance animation ---- */
+      if (this.firstModelReady && this.entranceProgress < 1) {
+        this.entranceProgress = Math.min(this.entranceProgress + 0.018, 1);
+      }
+      const entrance = this.entranceProgress;
+
+      /* ---- Hover fidget smoothing ---- */
+      this.currentHoverRotX = lerp(this.currentHoverRotX, this.hoverRotX, 0.08);
+      this.currentHoverRotY = lerp(this.currentHoverRotY, this.hoverRotY, 0.08);
+      // Decay hover rotation slowly back to zero
+      this.hoverRotX = lerp(this.hoverRotX, 0, 0.02);
+      this.hoverRotY = lerp(this.hoverRotY, 0, 0.02);
+
+      /* ---- Glow pulse (smooth hover transition) ---- */
+      this.glowHoverFactor = lerp(this.glowHoverFactor, this.hovered ? 1 : 0, 0.06);
+      if (this.glowSprite) {
+        const glowPulse = 0.5 + Math.sin(t * 1.2) * 0.15;
+        const hoverTarget = 0.85;
+        const glowOpacity = lerp(glowPulse, hoverTarget, this.glowHoverFactor);
+        (this.glowSprite.material as THREE.SpriteMaterial).opacity = glowOpacity * entrance;
+        const baseGlowScale = 4.5 + Math.sin(t * 0.8) * 0.5;
+        const glowScale = baseGlowScale + this.glowHoverFactor * 0.8;
+        this.glowSprite.scale.set(glowScale, glowScale, 1);
+      }
+
+      /* ---- Sync glow anchor position to pivot (no rotation) ---- */
+      if (this.glowAnchor) {
+        this.glowAnchor.position.copy(this.pivot.position);
+      }
+
+      /* ---- Pivot movement ---- */
+      const floatY = Math.sin(t * 0.5) * 0.15;
+      const floatX = Math.sin(t * 0.35 + 1) * 0.06;
+
+      if (!this.dragging) {
+        this.pivot.position.x = 2.5 + floatX;
+        this.pivot.position.y = floatY;
+
+        // Slowly decay user drag offset back to zero
+        this.userRotOffsetX = lerp(this.userRotOffsetX, 0, 0.003);
+        this.userRotOffsetY = lerp(this.userRotOffsetY, 0, 0.003);
+
+        const autoRotY = t * 0.15;
+        const mouseRotY = this.currentMouseX * 0.3;
+        const mouseRotX = this.currentMouseY * 0.15;
+
+        this.pivot.rotation.x = mouseRotX + this.userRotOffsetX + this.currentHoverRotX;
+        this.pivot.rotation.y = autoRotY + mouseRotY + this.userRotOffsetY + this.currentHoverRotY;
+        this.pivot.rotation.z = Math.sin(t * 0.25) * 0.03;
+      } else {
+        // Smoothly follow drag target
+        this.currentDragRotX = lerp(this.currentDragRotX, this.targetDragRotX, 0.12);
+        this.currentDragRotY = lerp(this.currentDragRotY, this.targetDragRotY, 0.12);
+
+        const autoRotY = this.autoRotYAtDragStart;
+        const mouseRotY = this.currentMouseX * 0.3;
+        const mouseRotX = this.currentMouseY * 0.15;
+
+        this.pivot.rotation.x = mouseRotX + this.currentDragRotX;
+        this.pivot.rotation.y = autoRotY + mouseRotY + this.currentDragRotY;
+        this.pivot.rotation.z = Math.sin(t * 0.25) * 0.03;
+      }
+
+      // Hover scale boost on active model — only when fully visible (not mid-transition)
+      if (this.allLoaded && !this.clickBurstActive) {
+        const active = this.models[this.activeIndex];
+        if (active.currentOpacity > 0.9) {
+          const hoverBoost = this.hovered ? BASE_SCALE * 1.06 : BASE_SCALE;
+          active.targetScale = hoverBoost;
+        }
+      }
+
+      /* ---- Click animation ---- */
+      if (this.clickBurstActive) {
+        const elapsed = t - this.clickBurstStart;
+        const bp = Math.min(elapsed / this.clickBurstDuration, 1);
+        // Ease out quart
+        const ease = 1 - Math.pow(1 - bp, 4);
+        // Elastic ease for bounce
+        const elasticEase = bp < 1
+          ? 1 - Math.pow(2, -10 * bp) * Math.cos((bp * 10 - 0.75) * (2 * Math.PI / 3))
+          : 1;
+
+        if (this.allLoaded) {
+          const active = this.models[this.activeIndex];
+
+          // Bounce scale: elastic pop
+          const scaleMultiplier = 1 + (elasticEase < 1 ? (1 - elasticEase) * 0.25 : 0);
+          const bounceScale = bp < 0.08
+            ? BASE_SCALE * (1 + (bp / 0.08) * 0.3)
+            : BASE_SCALE * scaleMultiplier;
+          active.currentScale = bounceScale;
+          active.targetScale = bounceScale;
+
+          // Full 360° Y spin
+          this.userRotOffsetY = this.clickSpinStart + ease * Math.PI * 2;
+
+          // Edge-line overlay: show edges, then fade out
+          // Dim the model so wireframe edges pop
+          const wirePhase = bp < 0.3 ? 1 : Math.max(1 - (bp - 0.3) / 0.4, 0);
+          const dimOpacity = 1 - wirePhase * 0.7; // dims to 0.3 at peak
+          active.group.traverse((child) => {
+            if ((child as THREE.Mesh).isMesh) {
+              const mesh = child as THREE.Mesh;
+              // Dim original material
+              const mats = Array.isArray(mesh.material) ? mesh.material : [mesh.material];
+              mats.forEach((mat) => {
+                mat.opacity = dimOpacity;
+              });
+              // Show edge overlay
+              const cached = this.edgeOverlays.get(mesh);
+              if (cached) {
+                cached.lines.visible = wirePhase > 0.01;
+                cached.lineMat.opacity = wirePhase * 0.9;
+              }
+            }
+          });
+        }
+
+        // Burst particles fly outward
+        {
+          const bPos = this.burstParticles.geometry.getAttribute('position') as THREE.BufferAttribute;
+          const speed = bp < 0.5 ? 1 : 0.3;
+          for (let i = 0; i < bPos.count; i++) {
+            const v = this.burstParticleVelocities[i];
+            bPos.setX(i, bPos.getX(i) + v.x * 0.016 * speed);
+            bPos.setY(i, bPos.getY(i) + v.y * 0.016 * speed);
+            bPos.setZ(i, bPos.getZ(i) + v.z * 0.016 * speed);
+          }
+          bPos.needsUpdate = true;
+          (this.burstParticles.material as THREE.PointsMaterial).opacity = Math.max(1 - ease * 1.3, 0);
+          (this.burstParticles.material as THREE.PointsMaterial).size = 0.06 + ease * 0.04;
+        }
+
+        // Shockwave ring expands
+        {
+          const ringScale = 1 + ease * 12;
+          this.shockwaveRing.scale.set(ringScale, ringScale, 1);
+          (this.shockwaveRing.material as THREE.MeshBasicMaterial).opacity = 0.8 * Math.max(1 - ease * 1.5, 0);
+          this.shockwaveRing.position.copy(this.pivot.position);
+          this.shockwaveRing.position.z += 0.3;
+        }
+
+        // Burst light flash — lightens the scene
+        this.burstLight.position.copy(this.pivot.position);
+        this.burstLight.position.z += 1;
+        this.burstLight.intensity = bp < 0.1
+          ? (bp / 0.1) * 8
+          : 8 * Math.max(1 - (bp - 0.1) / 0.4, 0);
+
+        // Glow sprite flash
+        if (this.glowSprite) {
+          const flash = bp < 0.1 ? bp / 0.1 : Math.max(1 - (bp - 0.1) / 0.3, 0);
+          (this.glowSprite.material as THREE.SpriteMaterial).opacity = Math.min(
+            (this.glowSprite.material as THREE.SpriteMaterial).opacity + flash * 0.5,
+            1.0,
+          );
+          this.glowSprite.scale.x += flash * 4;
+          this.glowSprite.scale.y += flash * 4;
+        }
+
+        // Reset when done
+        if (bp >= 1) {
+          this.clickBurstActive = false;
+          this.burstParticles.visible = false;
+          this.shockwaveRing.visible = false;
+          this.burstLight.intensity = 0;
+          // Debounce cooldown
+          setTimeout(() => { this.clickDebounce = false; }, 200);
+          if (this.allLoaded) {
+            const active = this.models[this.activeIndex];
+            active.targetScale = BASE_SCALE;
+            active.currentScale = BASE_SCALE;
+            // Hide edge overlays and restore model opacity
+            active.group.traverse((child) => {
+              if ((child as THREE.Mesh).isMesh) {
+                const mesh = child as THREE.Mesh;
+                // Restore full opacity
+                const mats = Array.isArray(mesh.material) ? mesh.material : [mesh.material];
+                mats.forEach((mat) => { mat.opacity = 1; });
+                // Hide edges
+                const cached = this.edgeOverlays.get(mesh);
+                if (cached) {
+                  cached.lines.visible = false;
+                  cached.lineMat.opacity = 0;
+                }
+              }
+            });
+          }
+        }
+      }
+
+      /* ---- Particles drift ---- */
       const pPos = this.particles.geometry.getAttribute('position') as THREE.BufferAttribute;
       for (let i = 0; i < pPos.count; i++) {
         let y = pPos.getY(i);
@@ -935,35 +933,30 @@ export class HeroGeometry {
     });
   }
 
-  /* ------------------------------------------------------------------ */
-  /*  Cleanup                                                            */
-  /* ------------------------------------------------------------------ */
+  /* ==================================================================
+   *  Cleanup
+   * ================================================================== */
 
   dispose() {
     this.disposed = true;
     raf.remove('hero-geometry');
-    const canvas = this.config.canvas;
     window.removeEventListener('mousemove', this._onMouseMove);
-    canvas.removeEventListener('mousedown', this._onMouseDown);
+    window.removeEventListener('mousedown', this._onMouseDown);
     window.removeEventListener('mouseup', this._onMouseUp);
-    canvas.removeEventListener('click', this._onClick);
+    window.removeEventListener('click', this._onClick);
     window.removeEventListener('resize', this._onResize);
     window.removeEventListener('deviceorientation', this._onOrientation);
-    canvas.removeEventListener('touchstart', this._onTouchStart);
-    canvas.removeEventListener('touchmove', this._onTouchMove);
-    canvas.removeEventListener('touchend', this._onTouchEnd);
+    window.removeEventListener('touchstart', this._onTouchStart);
+    window.removeEventListener('touchmove', this._onTouchMove);
+    window.removeEventListener('touchend', this._onTouchEnd);
     this.renderer.dispose();
-    for (const m of this.models) {
-      m.solidMesh.geometry.dispose();
-      (m.solidMesh.material as THREE.Material).dispose();
-      m.wireframe.geometry.dispose();
-      (m.wireframe.material as THREE.Material).dispose();
-      m.glowWireframe.geometry.dispose();
-      (m.glowWireframe.material as THREE.Material).dispose();
-    }
-    this.particles.geometry.dispose();
-    (this.particles.material as THREE.Material).dispose();
-    this.orbitRing.geometry.dispose();
-    (this.orbitRing.material as THREE.Material).dispose();
+    this.scene.traverse((obj) => {
+      if ((obj as THREE.Mesh).geometry) (obj as THREE.Mesh).geometry.dispose();
+      const mat = (obj as THREE.Mesh).material;
+      if (mat) {
+        if (Array.isArray(mat)) mat.forEach(m => m.dispose());
+        else (mat as THREE.Material).dispose();
+      }
+    });
   }
 }

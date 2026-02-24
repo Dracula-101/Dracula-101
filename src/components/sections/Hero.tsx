@@ -5,13 +5,12 @@ import { ArrowDown } from 'lucide-react';
 import { HeroGeometry } from '../../webgl/three/heroGeometry';
 import { NoiseOverlay } from '../ui/NoiseOverlay';
 import { MagneticButton } from '../ui/MagneticButton';
+import { Preloader } from '../ui/Preloader';
 import { useCursorStore } from '../../store/cursor.store';
 import { useUIStore } from '../../store/ui.store';
 
-/* ---------------------------------------------------------------
- * Reusable split-text helper — wraps each character in a span
- * inside an overflow-hidden wrapper for clip-up reveals.
- * --------------------------------------------------------------- */
+const LABELS = ['Mobile', 'Web', 'Server'] as const;
+
 function SplitLine({ text, refCb }: { text: string; refCb: (el: HTMLSpanElement | null) => void }) {
   return (
     <span className="inline-flex overflow-hidden">
@@ -22,13 +21,10 @@ function SplitLine({ text, refCb }: { text: string; refCb: (el: HTMLSpanElement 
   );
 }
 
-const LABELS = ['MOBILE', 'WEB', 'SERVER'];
-
 export function Hero() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const sceneRef = useRef<HeroGeometry | null>(null);
 
-  // Refs for entrance targets
   const line1Ref = useRef<HTMLSpanElement>(null);
   const line2Ref = useRef<HTMLSpanElement>(null);
   const line3Ref = useRef<HTMLSpanElement>(null);
@@ -38,28 +34,34 @@ export function Hero() {
   const badgeRef = useRef<HTMLDivElement>(null);
   const scrollIndRef = useRef<HTMLDivElement>(null);
 
+  const [activeSlide, setActiveSlide] = useState(0);
+  const [loadProgress, setLoadProgress] = useState(0);
+  const [modelsReady, setModelsReady] = useState(false);
   const setVariant = useCursorStore((s) => s.setVariant);
   const reducedMotion = useUIStore((s) => s.reducedMotion);
 
-  // Carousel state
-  const [activeLabel, setActiveLabel] = useState('');
-  const [activeIndex, setActiveIndex] = useState(0);
-
-  const handleLabelChange = useCallback((label: string, index: number) => {
-    setActiveLabel(label);
-    setActiveIndex(index);
+  const onSlideChange = useCallback((index: number) => {
+    setActiveSlide(index);
   }, []);
 
-  /* --- WebGL scene (3D foreground) --- */
+  const onProgress = useCallback((loaded: number, total: number) => {
+    setLoadProgress(loaded / total);
+  }, []);
+
+  const onAllLoaded = useCallback(() => {
+    setModelsReady(true);
+  }, []);
+
   useEffect(() => {
     if (!canvasRef.current) return;
-    const scene = new HeroGeometry({
+    sceneRef.current = new HeroGeometry({
       canvas: canvasRef.current,
       foregroundColor: '#FFFFFF',
       accentColor: '#F5A623',
+      onSlideChange,
+      onProgress,
+      onAllLoaded,
     });
-    scene.onLabelChange = handleLabelChange;
-    sceneRef.current = scene;
 
     const handleScroll = () => {
       const progress = Math.min(window.scrollY / window.innerHeight, 1);
@@ -70,9 +72,8 @@ export function Hero() {
       sceneRef.current?.dispose();
       window.removeEventListener('scroll', handleScroll);
     };
-  }, [handleLabelChange]);
+  }, [onSlideChange, onProgress, onAllLoaded]);
 
-  /* --- Entrance GSAP timeline --- */
   useEffect(() => {
     const targets = [line1Ref, line2Ref, line3Ref, accentBarRef, subtitleRef, ctaRef, badgeRef, scrollIndRef];
     if (reducedMotion) {
@@ -82,16 +83,14 @@ export function Hero() {
       return;
     }
 
-    const tl = gsap.timeline({ delay: 0.8 }); // delay to let 3D entrance play first
+    const tl = gsap.timeline({ delay: 0.8 });
 
-    // 1. Badge drops in
     tl.fromTo(badgeRef.current,
       { y: -24, opacity: 0 },
       { y: 0, opacity: 1, duration: 0.5, ease: 'power3.out' },
       0,
     );
 
-    // 2. Heading lines — clip-up with stagger (entrance pattern: y:24→0)
     const headingLines = [line1Ref.current, line2Ref.current, line3Ref.current];
     headingLines.forEach((el, i) => {
       tl.fromTo(el,
@@ -101,28 +100,24 @@ export function Hero() {
       );
     });
 
-    // 3. Accent bar wipes in
     tl.fromTo(accentBarRef.current,
       { scaleX: 0 },
       { scaleX: 1, duration: 0.5, ease: 'power3.out' },
       0.4,
     );
 
-    // 4. Subtitle fades up (entrance pattern)
     tl.fromTo(subtitleRef.current,
       { y: 24, opacity: 0 },
       { y: 0, opacity: 1, duration: 0.5, ease: 'power3.out' },
       0.5,
     );
 
-    // 5. CTA buttons entrance
     tl.fromTo(ctaRef.current,
       { y: 24, opacity: 0 },
       { y: 0, opacity: 1, duration: 0.5, ease: 'power3.out' },
       0.6,
     );
 
-    // 6. Scroll indicator appears
     tl.fromTo(scrollIndRef.current,
       { opacity: 0, y: 16 },
       { opacity: 1, y: 0, duration: 0.5, ease: 'power3.out' },
@@ -132,19 +127,19 @@ export function Hero() {
 
   return (
     <section id="hero" className="relative h-screen overflow-hidden" style={{ background: 'var(--color-bg)' }}>
-      {/* 3D Canvas — FOREGROUND, not background */}
+      {/* Preloader overlay */}
+      <Preloader progress={loadProgress} ready={modelsReady} />
+
       <canvas
         ref={canvasRef}
         className="absolute inset-0 w-full h-full"
         style={{ zIndex: 'var(--z-base)' as unknown as number }}
       />
 
-      {/* Noise overlay */}
       <div className="absolute inset-0 pointer-events-none" style={{ zIndex: 'var(--z-raised)' as unknown as number }}>
         <NoiseOverlay />
       </div>
 
-      {/* Gradient vignette — subtle edges to bg */}
       <div
         className="absolute inset-0 pointer-events-none"
         style={{
@@ -153,13 +148,11 @@ export function Hero() {
         }}
       />
 
-      {/* Content — loads after 3D entrance */}
       <div
         className="relative h-full flex flex-col justify-center"
         style={{ zIndex: 'var(--z-raised)' as unknown as number, padding: `0 var(--outer-margin)` }}
       >
         <div className="max-w-none">
-          {/* Top badge */}
           <div ref={badgeRef} className="opacity-0" style={{ marginBottom: 'var(--space-3)' }}>
             <span
               className="type-label inline-flex items-center uppercase"
@@ -178,7 +171,6 @@ export function Hero() {
             </span>
           </div>
 
-          {/* Heading lines — each inside overflow-hidden */}
           <div
             className="hero-headings"
             onMouseEnter={() => setVariant('repel')}
@@ -195,7 +187,6 @@ export function Hero() {
             </div>
           </div>
 
-          {/* Accent bar */}
           <div
             ref={accentBarRef}
             className="origin-left"
@@ -208,18 +199,13 @@ export function Hero() {
             }}
           />
 
-          {/* Subtitle */}
           <div ref={subtitleRef} className="opacity-0" style={{ marginTop: 'var(--space-4)' }}>
-            <p
-              className="type-body max-w-xl"
-              style={{ color: 'var(--color-muted)' }}
-            >
+            <p className="type-body max-w-xl" style={{ color: 'var(--color-muted)' }}>
               Crafting distributed systems, mobile apps, and intelligent interfaces.
               Based in Boulder, CO — available worldwide.
             </p>
           </div>
 
-          {/* CTA */}
           <div ref={ctaRef} className="flex items-center opacity-0" style={{ marginTop: 'var(--space-6)', gap: 'var(--space-3)' }}>
             <MagneticButton
               variant="primary"
@@ -238,55 +224,51 @@ export function Hero() {
         </div>
       </div>
 
-      {/* Carousel label + pager dots — right side */}
-      {activeLabel && (
-        <div
-          className="absolute right-0 top-1/2 -translate-y-1/2 flex flex-col items-center pointer-events-none"
-          style={{
-            zIndex: 'var(--z-raised)' as unknown as number,
-            right: 'var(--outer-margin)',
-            gap: 'var(--space-3)',
-          }}
-        >
-          {/* Active label */}
-          <AnimatePresence mode="wait">
-            <motion.span
-              key={activeLabel}
-              className="type-caption"
+      {/* ---- Carousel label + dots ---- */}
+      <div
+        className="absolute flex items-center"
+        style={{
+          zIndex: 'var(--z-raised)' as unknown as number,
+          bottom: 'var(--space-8)',
+          right: 'var(--outer-margin)',
+          gap: 'var(--space-3)',
+        }}
+      >
+        <AnimatePresence mode="wait">
+          <motion.span
+            key={activeSlide}
+            className="type-caption uppercase"
+            style={{ color: 'var(--color-accent)', letterSpacing: '0.14em', minWidth: 54 }}
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }}
+            transition={{ duration: 0.25 }}
+          >
+            {LABELS[activeSlide]}
+          </motion.span>
+        </AnimatePresence>
+
+        <div className="flex items-center" style={{ gap: 6 }}>
+          {LABELS.map((_, i) => (
+            <button
+              key={i}
+              aria-label={`Show ${LABELS[i]}`}
+              onClick={() => sceneRef.current?.goToSlide(i)}
+              className="relative transition-all duration-300"
               style={{
-                color: 'var(--color-accent)',
-                letterSpacing: '0.15em',
-                writingMode: 'vertical-rl',
-                textOrientation: 'mixed',
+                width: activeSlide === i ? 24 : 8,
+                height: 8,
+                borderRadius: 4,
+                background: activeSlide === i ? 'var(--color-accent)' : 'var(--color-border)',
+                cursor: 'pointer',
+                border: 'none',
+                padding: 0,
               }}
-              initial={{ opacity: 0, y: -8 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: 8 }}
-              transition={{ duration: 0.3 }}
-            >
-              {activeLabel}
-            </motion.span>
-          </AnimatePresence>
-
-          {/* Pager dots */}
-          <div className="flex flex-col items-center" style={{ gap: 8 }}>
-            {LABELS.map((label, i) => (
-              <div
-                key={label}
-                style={{
-                  width: i === activeIndex ? 8 : 4,
-                  height: i === activeIndex ? 8 : 4,
-                  borderRadius: '50%',
-                  background: i === activeIndex ? 'var(--color-accent)' : 'var(--color-border)',
-                  transition: 'all 0.4s ease',
-                }}
-              />
-            ))}
-          </div>
+            />
+          ))}
         </div>
-      )}
+      </div>
 
-      {/* Heading typography — uses design tokens */}
       <style>{`
         .hero-headings > .overflow-hidden > span > span {
           font-family: var(--font-display);
@@ -302,7 +284,6 @@ export function Hero() {
         }
       `}</style>
 
-      {/* Scroll indicator */}
       <div
         ref={scrollIndRef}
         className="absolute left-1/2 -translate-x-1/2 flex flex-col items-center opacity-0"

@@ -3,7 +3,7 @@ import { motion, useInView } from 'framer-motion';
 import { TextReveal } from '../ui/TextReveal';
 import { CountUp } from '../ui/CountUp';
 import { SectionWrapper } from '../layout/SectionWrapper';
-import { NetworkMesh } from '../ui/NetworkMesh';
+import { Globe } from '../ui/Globe';
 import { useCursorStore } from '../../store/cursor.store';
 import { transitions } from '../../utils/spring';
 
@@ -47,9 +47,9 @@ export function About() {
   return (
     <SectionWrapper id="about">
       <div className="grid grid-cols-1 lg:grid-cols-2 items-start" style={{ gap: 'var(--space-12)' }}>
-        {/* Left — orbital mesh */}
+        {/* Left — 3D Globe */}
         <div className="flex flex-col items-center justify-center" style={{ minHeight: 420 }}>
-          <NetworkMesh className="w-full max-w-[500px]" />
+          <Globe className="w-full max-w-[500px]" />
         </div>
 
         {/* Right — Text */}
