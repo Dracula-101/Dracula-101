@@ -24,6 +24,11 @@ function SplitLine({ text, refCb }: { text: string; refCb: (el: HTMLSpanElement 
 export function Hero() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const sceneRef = useRef<HeroGeometry | null>(null);
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    setIsMobile(window.matchMedia('(pointer: coarse)').matches);
+  }, []);
 
   const line1Ref = useRef<HTMLSpanElement>(null);
   const line2Ref = useRef<HTMLSpanElement>(null);
@@ -53,6 +58,7 @@ export function Hero() {
   }, []);
 
   useEffect(() => {
+    if (isMobile) return;
     if (!canvasRef.current) return;
     sceneRef.current = new HeroGeometry({
       canvas: canvasRef.current,
@@ -72,7 +78,7 @@ export function Hero() {
       sceneRef.current?.dispose();
       window.removeEventListener('scroll', handleScroll);
     };
-  }, [onSlideChange, onProgress, onAllLoaded]);
+  }, [onSlideChange, onProgress, onAllLoaded, isMobile]);
 
   useEffect(() => {
     const targets = [line1Ref, line2Ref, line3Ref, accentBarRef, subtitleRef, ctaRef, badgeRef, scrollIndRef];
@@ -127,14 +133,17 @@ export function Hero() {
 
   return (
     <section id="hero" className="relative h-screen overflow-hidden" style={{ background: 'var(--color-bg)' }}>
-      {/* Preloader overlay */}
-      <Preloader progress={loadProgress} ready={modelsReady} />
-
-      <canvas
-        ref={canvasRef}
-        className="absolute inset-0 w-full h-full"
-        style={{ zIndex: 'var(--z-base)' as unknown as number }}
-      />
+      {/* Preloader and 3D model only on desktop */}
+      {!isMobile && (
+        <>
+          <Preloader progress={loadProgress} ready={modelsReady} />
+          <canvas
+            ref={canvasRef}
+            className="absolute inset-0 w-full h-full"
+            style={{ zIndex: 'var(--z-base)' as unknown as number }}
+          />
+        </>
+      )}
 
       <div className="absolute inset-0 pointer-events-none" style={{ zIndex: 'var(--z-raised)' as unknown as number }}>
         <NoiseOverlay />
@@ -225,49 +234,51 @@ export function Hero() {
       </div>
 
       {/* ---- Carousel label + dots ---- */}
-      <div
-        className="absolute flex items-center"
-        style={{
-          zIndex: 'var(--z-raised)' as unknown as number,
-          bottom: 'var(--space-8)',
-          right: 'var(--outer-margin)',
-          gap: 'var(--space-3)',
-        }}
-      >
-        <AnimatePresence mode="wait">
-          <motion.span
-            key={activeSlide}
-            className="type-caption uppercase"
-            style={{ color: 'var(--color-accent)', letterSpacing: '0.14em', minWidth: 54 }}
-            initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -8 }}
-            transition={{ duration: 0.25 }}
-          >
-            {LABELS[activeSlide]}
-          </motion.span>
-        </AnimatePresence>
+      {!isMobile && (
+        <div
+          className="absolute flex items-center"
+          style={{
+            zIndex: 'var(--z-raised)' as unknown as number,
+            bottom: 'var(--space-8)',
+            right: 'var(--outer-margin)',
+            gap: 'var(--space-3)',
+          }}
+        >
+          <AnimatePresence mode="wait">
+            <motion.span
+              key={activeSlide}
+              className="type-caption uppercase"
+              style={{ color: 'var(--color-accent)', letterSpacing: '0.14em', minWidth: 54 }}
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -8 }}
+              transition={{ duration: 0.25 }}
+            >
+              {LABELS[activeSlide]}
+            </motion.span>
+          </AnimatePresence>
 
-        <div className="flex items-center" style={{ gap: 6 }}>
-          {LABELS.map((_, i) => (
-            <button
-              key={i}
-              aria-label={`Show ${LABELS[i]}`}
-              onClick={() => sceneRef.current?.goToSlide(i)}
-              className="relative transition-all duration-300"
-              style={{
-                width: activeSlide === i ? 24 : 8,
-                height: 8,
-                borderRadius: 4,
-                background: activeSlide === i ? 'var(--color-accent)' : 'var(--color-border)',
-                cursor: 'pointer',
-                border: 'none',
-                padding: 0,
-              }}
-            />
-          ))}
+          <div className="flex items-center" style={{ gap: 6 }}>
+            {LABELS.map((_, i) => (
+              <button
+                key={i}
+                aria-label={`Show ${LABELS[i]}`}
+                onClick={() => sceneRef.current?.goToSlide(i)}
+                className="relative transition-all duration-300"
+                style={{
+                  width: activeSlide === i ? 24 : 8,
+                  height: 8,
+                  borderRadius: 4,
+                  background: activeSlide === i ? 'var(--color-accent)' : 'var(--color-border)',
+                  cursor: 'pointer',
+                  border: 'none',
+                  padding: 0,
+                }}
+              />
+            ))}
+          </div>
         </div>
-      </div>
+      )}
 
       <style>{`
         .hero-headings > .overflow-hidden > span > span {
