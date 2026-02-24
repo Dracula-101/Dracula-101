@@ -226,7 +226,9 @@ export function Globe({ className }: { className?: string }) {
     pointLight.position.set(3, 2, 4);
     scene.add(pointLight);
 
-    /* ── Drag interaction ── */
+    /* ── Drag interaction (desktop only) ── */
+    const isMobile = window.matchMedia('(pointer: coarse)').matches;
+
     let drag = false;
     let prev = { x: 0, y: 0 };
     let targetRotY = 0;
@@ -255,10 +257,12 @@ export function Globe({ className }: { className?: string }) {
       canvas.style.cursor = 'grab';
     };
 
-    canvas.addEventListener('pointerdown', onDown);
-    window.addEventListener('pointermove', onMove);
-    window.addEventListener('pointerup', onUp);
-    canvas.style.cursor = 'grab';
+    if (!isMobile) {
+      canvas.addEventListener('pointerdown', onDown);
+      window.addEventListener('pointermove', onMove);
+      window.addEventListener('pointerup', onUp);
+      canvas.style.cursor = 'grab';
+    }
 
     /* ── Resize ── */
     const onResize = () => {
@@ -320,9 +324,11 @@ export function Globe({ className }: { className?: string }) {
 
     return () => {
       disposed.current = true;
-      canvas.removeEventListener('pointerdown', onDown);
-      window.removeEventListener('pointermove', onMove);
-      window.removeEventListener('pointerup', onUp);
+      if (!isMobile) {
+        canvas.removeEventListener('pointerdown', onDown);
+        window.removeEventListener('pointermove', onMove);
+        window.removeEventListener('pointerup', onUp);
+      }
       window.removeEventListener('resize', onResize);
       renderer.dispose();
       scene.traverse((obj) => {
@@ -338,7 +344,7 @@ export function Globe({ className }: { className?: string }) {
 
   return (
     <div ref={wrapRef} className={className} style={{ position: 'relative', aspectRatio: '1' }}>
-      <canvas ref={canRef} style={{ width: '100%', height: '100%', touchAction: 'none' }} />
+      <canvas ref={canRef} style={{ width: '100%', height: '100%' }} />
     </div>
   );
 }
