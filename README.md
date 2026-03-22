@@ -79,14 +79,6 @@ Building distributed systems, real-time apps, and cross-platform mobile experien
 
 ## Featured Projects
 
-| Project | Stack | Links |
-|:--------|:------|:------|
-| **Echo** — 9-microservice real-time chat platform | Go, Kotlin, PostgreSQL, Redis, Kafka, Docker | [Backend](https://github.com/Dracula-101/echo-backend) · [Android](https://github.com/Dracula-101/echo-android) · [API Docs](https://gold-flare-207776.postman.co/workspace/Echo-Backend~6ca8e616-c835-42be-ade7-cc1408b316d9/collection/19532712-4d4e7948-58cd-495a-befd-da98c408059a) |
-| **Sync** — Reddit-like social platform with 40+ APIs | Go, Kotlin, MongoDB, Redis, PostgreSQL | [Backend](https://github.com/Dracula-101/sync-backend) · [API Docs](https://documenter.getpostman.com/view/19532712/2sB2qdeymS) |
-| **Nesters** — Roommate finder with 50K concurrent users | Flutter, Supabase, Firebase, GCP, Python | [Play Store](https://play.google.com/store/apps/details?id=com.app.nesters) · [App Store](https://apps.apple.com/sb/app/nesters-student-life/id6743980821) · [GitHub](https://github.com/Dracula-101/Nesters) |
-| **JetScan** — Document scanner with 100ms edge detection | Android, OpenCV, Firebase, GCP | [GitHub](https://github.com/JetScan-Technologies/jetscan-android) · [Demo](https://drive.google.com/file/d/1MdJ2MUMGD9MCw7jzagJNSZZbSxGC7ZFs/view?usp=drive_link) |
-
-<br>
 
 <a href="https://github.com/Dracula-101/echo-backend">
 <img align="center" src="https://github-readme-stats.vercel.app/api/pin/?username=Dracula-101&repo=echo-backend&theme=dark&bg_color=0d1117&hide_border=true&icon_color=F5A623&title_color=F5A623&text_color=c9d1d9" />
@@ -103,17 +95,6 @@ Building distributed systems, real-time apps, and cross-platform mobile experien
 <a href="https://github.com/Dracula-101/Nesters">
 <img align="center" src="https://github-readme-stats.vercel.app/api/pin/?username=Dracula-101&repo=Nesters&theme=dark&bg_color=0d1117&hide_border=true&icon_color=F5A623&title_color=F5A623&text_color=c9d1d9" />
 </a>
-
-<br><br>
-
-## Experience
-
-| Role | Company | Period |
-|:-----|:--------|:-------|
-| **Software Developer Intern** | Aim4U Software Solutions, Mumbai | Nov 2023 - Dec 2024 |
-| **Research and Software Intern** | Acuradyne Systems, IIT Bombay Research Park | Jan 2023 - June 2023 |
-
-<br>
 
 ## GitHub Stats
 
