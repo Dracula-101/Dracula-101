@@ -79,52 +79,12 @@ Building distributed systems, real-time apps, and cross-platform mobile experien
 
 ## Featured Projects
 
-<table>
-<tr>
-<td width="50%">
-
-**Echo — Real-time Chat Platform**\
-<sub>Go, Kotlin, PostgreSQL, Redis, Kafka, Docker</sub>
-
-9-microservice backend with Kotlin Jetpack Compose frontend. WebSocket messaging supporting 10K+ concurrent connections with sub-10ms latency. JWT auth, offline-first sync, push notifications.
-
-[Backend](https://github.com/Dracula-101/echo-backend) · [Android](https://github.com/Dracula-101/echo-android) · [API Docs](https://gold-flare-207776.postman.co/workspace/Echo-Backend~6ca8e616-c835-42be-ade7-cc1408b316d9/collection/19532712-4d4e7948-58cd-495a-befd-da98c408059a)
-
-</td>
-<td width="50%">
-
-**Sync — Social Platform**\
-<sub>Go, Kotlin, MongoDB, Redis, PostgreSQL</sub>
-
-Reddit-like social platform with 40+ RESTful APIs, Google OAuth, real-time feeds, threaded comments, and Cloudinary media uploads. Multi-database backend architecture.
-
-[Backend](https://github.com/Dracula-101/sync-backend) · [API Docs](https://documenter.getpostman.com/view/19532712/2sB2qdeymS)
-
-</td>
-</tr>
-<tr>
-<td width="50%">
-
-**Nesters — Roommate Finder**\
-<sub>Flutter, Supabase, Firebase, GCP, Python</sub>
-
-Flutter app connecting students with roommates using advanced matching filters. Real-time Firebase chat supporting 50K concurrent users. Built-in marketplace for student listings.
-
-[Play Store](https://play.google.com/store/apps/details?id=com.app.nesters) · [App Store](https://apps.apple.com/sb/app/nesters-student-life/id6743980821) · [GitHub](https://github.com/Dracula-101/Nesters)
-
-</td>
-<td width="50%">
-
-**JetScan — Document Scanner**\
-<sub>Android, OpenCV, Firebase, GCP</sub>
-
-Android document scanner with Jetpack Compose and MVVM architecture. Edge detection achieving 100ms recognition with angle-invariant accuracy. Google Document AI OCR integration.
-
-[GitHub](https://github.com/JetScan-Technologies/jetscan-android) · [Demo](https://drive.google.com/file/d/1MdJ2MUMGD9MCw7jzagJNSZZbSxGC7ZFs/view?usp=drive_link)
-
-</td>
-</tr>
-</table>
+| Project | Stack | Links |
+|:--------|:------|:------|
+| **Echo** — 9-microservice real-time chat platform | Go, Kotlin, PostgreSQL, Redis, Kafka, Docker | [Backend](https://github.com/Dracula-101/echo-backend) · [Android](https://github.com/Dracula-101/echo-android) · [API Docs](https://gold-flare-207776.postman.co/workspace/Echo-Backend~6ca8e616-c835-42be-ade7-cc1408b316d9/collection/19532712-4d4e7948-58cd-495a-befd-da98c408059a) |
+| **Sync** — Reddit-like social platform with 40+ APIs | Go, Kotlin, MongoDB, Redis, PostgreSQL | [Backend](https://github.com/Dracula-101/sync-backend) · [API Docs](https://documenter.getpostman.com/view/19532712/2sB2qdeymS) |
+| **Nesters** — Roommate finder with 50K concurrent users | Flutter, Supabase, Firebase, GCP, Python | [Play Store](https://play.google.com/store/apps/details?id=com.app.nesters) · [App Store](https://apps.apple.com/sb/app/nesters-student-life/id6743980821) · [GitHub](https://github.com/Dracula-101/Nesters) |
+| **JetScan** — Document scanner with 100ms edge detection | Android, OpenCV, Firebase, GCP | [GitHub](https://github.com/JetScan-Technologies/jetscan-android) · [Demo](https://drive.google.com/file/d/1MdJ2MUMGD9MCw7jzagJNSZZbSxGC7ZFs/view?usp=drive_link) |
 
 <br>
 
@@ -135,7 +95,7 @@ Android document scanner with Jetpack Compose and MVVM architecture. Edge detect
 <img align="center" src="https://github-readme-stats.vercel.app/api/pin/?username=Dracula-101&repo=sync-backend&theme=dark&bg_color=0d1117&hide_border=true&icon_color=F5A623&title_color=F5A623&text_color=c9d1d9" />
 </a>
 
-<br>
+<br><br>
 
 <a href="https://github.com/JetScan-Technologies/jetscan-android">
 <img align="center" src="https://github-readme-stats.vercel.app/api/pin/?username=JetScan-Technologies&repo=jetscan-android&theme=dark&bg_color=0d1117&hide_border=true&icon_color=F5A623&title_color=F5A623&text_color=c9d1d9" />
@@ -148,26 +108,10 @@ Android document scanner with Jetpack Compose and MVVM architecture. Edge detect
 
 ## Experience
 
-<table>
-<tr>
-<td width="50%">
-
-**Software Developer Intern**
-<sub>Aim4U Software Solutions · Nov 2023 - Dec 2024</sub>
-
-Built **Dermalens**, an AI-powered healthcare platform with Flutter, AWS Lambda & Detectron2 for skin disease classification at 90-95% accuracy (300+ downloads). Integrated Agora SDK for HIPAA-compliant video consultations. Co-developed **Autobuddys** for autistic children (250+ downloads).
-
-</td>
-<td width="50%">
-
-**Research and Software Intern**
-<sub>Acuradyne Systems, IIT Bombay Research Park · Jan 2023 - June 2023</sub>
-
-Engineered IoT health monitoring device achieving 566% improvement in data transfer rates via BLE protocol. Built Flutter patient management system with AES128 encryption. Innovated OTA firmware update mechanism reducing deployment time by 40%.
-
-</td>
-</tr>
-</table>
+| Role | Company | Period |
+|:-----|:--------|:-------|
+| **Software Developer Intern** | Aim4U Software Solutions, Mumbai | Nov 2023 - Dec 2024 |
+| **Research and Software Intern** | Acuradyne Systems, IIT Bombay Research Park | Jan 2023 - June 2023 |
 
 <br>
 
@@ -182,12 +126,6 @@ Engineered IoT health monitoring device achieving 566% improvement in data trans
 
 <img width="40%" src="https://github-readme-stats.vercel.app/api/top-langs/?username=Dracula-101&layout=compact&theme=dark&bg_color=0d1117&hide_border=true&title_color=F5A623&text_color=c9d1d9" alt="Top Languages" />
 
-</div>
-
-<br>
-
-<div align="center">
-  <img src="https://github-readme-activity-graph.vercel.app/graph?username=Dracula-101&bg_color=0d1117&color=c9d1d9&line=F5A623&point=F5A623&area=true&area_color=F5A623&hide_border=true" width="95%" alt="Contribution Graph" />
 </div>
 
 <br>
