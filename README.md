@@ -83,7 +83,7 @@ Building distributed systems, real-time apps, and cross-platform mobile experien
 <tr>
 <td width="50%">
 
-**Echo — Real-time Chat Platform**
+**Echo — Real-time Chat Platform**\
 <sub>Go, Kotlin, PostgreSQL, Redis, Kafka, Docker</sub>
 
 9-microservice backend with Kotlin Jetpack Compose frontend. WebSocket messaging supporting 10K+ concurrent connections with sub-10ms latency. JWT auth, offline-first sync, push notifications.
@@ -93,7 +93,7 @@ Building distributed systems, real-time apps, and cross-platform mobile experien
 </td>
 <td width="50%">
 
-**Sync — Social Platform**
+**Sync — Social Platform**\
 <sub>Go, Kotlin, MongoDB, Redis, PostgreSQL</sub>
 
 Reddit-like social platform with 40+ RESTful APIs, Google OAuth, real-time feeds, threaded comments, and Cloudinary media uploads. Multi-database backend architecture.
@@ -105,7 +105,7 @@ Reddit-like social platform with 40+ RESTful APIs, Google OAuth, real-time feeds
 <tr>
 <td width="50%">
 
-**Nesters — Roommate Finder**
+**Nesters — Roommate Finder**\
 <sub>Flutter, Supabase, Firebase, GCP, Python</sub>
 
 Flutter app connecting students with roommates using advanced matching filters. Real-time Firebase chat supporting 50K concurrent users. Built-in marketplace for student listings.
@@ -115,7 +115,7 @@ Flutter app connecting students with roommates using advanced matching filters. 
 </td>
 <td width="50%">
 
-**JetScan — Document Scanner**
+**JetScan — Document Scanner**\
 <sub>Android, OpenCV, Firebase, GCP</sub>
 
 Android document scanner with Jetpack Compose and MVVM architecture. Edge detection achieving 100ms recognition with angle-invariant accuracy. Google Document AI OCR integration.
@@ -135,7 +135,7 @@ Android document scanner with Jetpack Compose and MVVM architecture. Edge detect
 <img align="center" src="https://github-readme-stats.vercel.app/api/pin/?username=Dracula-101&repo=sync-backend&theme=dark&bg_color=0d1117&hide_border=true&icon_color=F5A623&title_color=F5A623&text_color=c9d1d9" />
 </a>
 
-<br><br>
+<br>
 
 <a href="https://github.com/JetScan-Technologies/jetscan-android">
 <img align="center" src="https://github-readme-stats.vercel.app/api/pin/?username=JetScan-Technologies&repo=jetscan-android&theme=dark&bg_color=0d1117&hide_border=true&icon_color=F5A623&title_color=F5A623&text_color=c9d1d9" />
