@@ -11,14 +11,15 @@ import { GridOverlay } from './components/ui/GridOverlay';
 import { Hero } from './components/sections/Hero';
 import { About } from './components/sections/About';
 import { Work } from './components/sections/Work';
-import { Process } from './components/sections/Process';
 import { Stats } from './components/sections/Stats';
 import { Contact } from './components/sections/Contact';
 import { Experience } from './components/sections/Experience';
 import { Research } from './components/sections/Research';
+import { Process } from './components/sections/Process';
 import { ProjectDetail } from './components/pages/ProjectDetail';
 import { ExperienceDetail } from './components/pages/ExperienceDetail';
 import { ResearchDetail } from './components/pages/ResearchDetail';
+import { ResumePage } from './components/pages/ResumePage';
 import { useReducedMotion } from './hooks/useReducedMotion';
 import { useScrollProgress } from './hooks/useScrollProgress';
 
@@ -93,6 +94,7 @@ export function App() {
           <Route path="/project/:id" element={<ProjectDetail />} />
           <Route path="/experience/:id" element={<ExperienceDetail />} />
           <Route path="/research/:id" element={<ResearchDetail />} />
+          <Route path="/resume" element={<ResumePage />} />
         </Routes>
       </main>
 

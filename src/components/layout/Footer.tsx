@@ -1,4 +1,5 @@
 import { useState, useRef } from 'react';
+import { Link } from 'react-router-dom';
 import { motion, useInView } from 'framer-motion';
 import { ArrowUpRight, ArrowUp } from 'lucide-react';
 import { MarqueeReel } from '../ui/MarqueeReel';
@@ -20,6 +21,7 @@ export function Footer() {
     { href: '#research', label: 'Research' },
     { href: '#process', label: 'Process' },
     { href: '#contact', label: 'Contact' },
+    { href: '/resume', label: 'Resume' },
   ];
 
   const socialLinks = [
@@ -134,18 +136,31 @@ export function Footer() {
           className="flex items-center flex-wrap"
           style={{ gap: 'var(--space-4)' }}
         >
-          {navLinks.map((link) => (
-            <a
-              key={link.href}
-              href={link.href}
-              className="type-label nav-link"
-              style={{ color: 'var(--color-muted)' }}
-              onMouseEnter={() => setVariant('link')}
-              onMouseLeave={() => setVariant('default')}
-            >
-              {link.label}
-            </a>
-          ))}
+          {navLinks.map((link) =>
+            link.href.startsWith('/') ? (
+              <Link
+                key={link.href}
+                to={link.href}
+                className="type-label nav-link"
+                style={{ color: 'var(--color-muted)' }}
+                onMouseEnter={() => setVariant('link')}
+                onMouseLeave={() => setVariant('default')}
+              >
+                {link.label}
+              </Link>
+            ) : (
+              <a
+                key={link.href}
+                href={link.href}
+                className="type-label nav-link"
+                style={{ color: 'var(--color-muted)' }}
+                onMouseEnter={() => setVariant('link')}
+                onMouseLeave={() => setVariant('default')}
+              >
+                {link.label}
+              </a>
+            )
+          )}
         </motion.nav>
 
         {/* Right: socials + back to top */}

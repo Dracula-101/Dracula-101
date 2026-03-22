@@ -23,6 +23,7 @@ interface MagneticButtonProps {
   variant?: 'primary' | 'secondary' | 'ghost';
   onClick?: () => void;
   href?: string;
+  download?: boolean | string;
   disabled?: boolean;
   strength?: number;
 }
@@ -33,6 +34,7 @@ export function MagneticButton({
   variant = 'primary',
   onClick,
   href,
+  download,
   disabled = false,
   strength = 0.35,
 }: MagneticButtonProps) {
@@ -212,7 +214,7 @@ export function MagneticButton({
         />
       ))}
       {/* Content */}
-      <span className="relative z-[1]">{children}</span>
+      <span className="relative z-[1] inline-flex items-center gap-2">{children}</span>
     </>
   );
 
@@ -246,6 +248,7 @@ export function MagneticButton({
         <a
           href={href}
           {...(href.startsWith('mailto:') || href.startsWith('tel:') ? {} : { target: '_blank', rel: 'noopener noreferrer' })}
+          {...(download ? { download: typeof download === 'string' ? download : '' } : {})}
           className={clsx(baseClasses, className, disabled && 'opacity-40 pointer-events-none')}
           style={{ ...variantStyles[variant], ...focusRingStyle }}
         >

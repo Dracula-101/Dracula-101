@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { gsap } from 'gsap';
-import { ArrowDown } from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
 import { HeroGeometry } from '../../webgl/three/heroGeometry';
 import { NoiseOverlay } from '../ui/NoiseOverlay';
 import { MagneticButton } from '../ui/MagneticButton';
@@ -22,6 +23,7 @@ function SplitLine({ text, refCb }: { text: string; refCb: (el: HTMLSpanElement 
 }
 
 export function Hero() {
+  const navigate = useNavigate();
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const sceneRef = useRef<HeroGeometry | null>(null);
   const [isMobile, setIsMobile] = useState(false);
@@ -223,11 +225,11 @@ export function Hero() {
               View Work
             </MagneticButton>
             <MagneticButton
-              variant="ghost"
-              onClick={() => document.querySelector('#contact')?.scrollIntoView({ behavior: 'smooth' })}
+              variant="secondary"
+              onClick={() => navigate('/resume')}
             >
-              Get in Touch
-              <ArrowDown size={16} strokeWidth={1.5} />
+              Resume
+              <ArrowRight size={16} strokeWidth={1.5} />
             </MagneticButton>
           </div>
         </div>

@@ -62,8 +62,8 @@ function StepCard({ step, index }: { step: typeof processSteps[0]; index: number
       <h3
         style={{
           fontFamily: 'var(--font-display)',
-          fontSize: 'clamp(16px, 1.5vw, 20px)',
-          fontWeight: 600,
+          fontSize: 'clamp(20px, 2vw, 28px)',
+          fontWeight: 700,
           letterSpacing: '-0.02em',
           lineHeight: 1.2,
           color: 'var(--color-fg)',
@@ -73,7 +73,7 @@ function StepCard({ step, index }: { step: typeof processSteps[0]; index: number
       </h3>
 
       {/* Body */}
-      <p className="type-body" style={{ color: 'var(--color-muted)', fontSize: '13px', lineHeight: 1.5 }}>
+      <p className="type-body" style={{ color: 'var(--color-muted)' }}>
         {step.body}
       </p>
     </motion.div>
@@ -87,16 +87,9 @@ export function Process() {
 
   return (
     <SectionWrapper id="process">
-      {/* Sticky Section Header */}
+      {/* Section Header */}
       <div
         style={{
-          position: 'sticky',
-          top: 0,
-          zIndex: 'var(--z-raised)',
-          background: 'rgba(10,10,10,0.92)',
-          backdropFilter: 'blur(4px)',
-          paddingTop: 'var(--space-2)',
-          paddingBottom: 'var(--space-2)',
           marginBottom: 'var(--space-5)',
         }}
       >
@@ -152,7 +145,7 @@ export function Process() {
             <span
               style={{
                 fontFamily: 'var(--font-display)',
-                fontSize: 'clamp(14px, 1.4vw, 17px)',
+                fontSize: 'clamp(18px, 2vw, 24px)',
                 fontWeight: 600,
                 letterSpacing: '-0.01em',
                 lineHeight: 1.35,
@@ -161,7 +154,7 @@ export function Process() {
             >
               {p.statement}
             </span>
-            <span className="type-body" style={{ color: 'var(--color-muted)', fontSize: '13px' }}>
+            <span className="type-body" style={{ color: 'var(--color-muted)' }}>
               {p.body}
             </span>
           </motion.div>

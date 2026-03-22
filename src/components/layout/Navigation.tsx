@@ -1,5 +1,6 @@
-import { useRef, useEffect, useCallback, useState } from 'react';
-import { motion, AnimatePresence, useScroll, useTransform, useMotionValueEvent } from 'framer-motion';
+import { useRef, useEffect, useCallback } from 'react';
+import { useNavigate, Link } from 'react-router-dom';
+import { motion, AnimatePresence, useScroll, useTransform } from 'framer-motion';
 import { gsap } from 'gsap';
 import { Volume2, VolumeX, ArrowRight, ArrowUpRight } from 'lucide-react';
 import { useUIStore } from '../../store/ui.store';
@@ -14,6 +15,7 @@ const NAV_ITEMS = [
   { label: 'Research', href: '#research' },
   { label: 'Process', href: '#process' },
   { label: 'Contact', href: '#contact' },
+  { label: 'Resume', href: '/resume' },
 ];
 
 const SOCIAL_LINKS = [
@@ -25,28 +27,41 @@ const SOCIAL_LINKS = [
 export function Navigation() {
   const { navOpen, toggleNav, soundEnabled, toggleSound } = useUIStore();
   const setVariant = useCursorStore((s) => s.setVariant);
+  const navigate = useNavigate();
   const overlayRef = useRef<HTMLDivElement>(null);
   const line1Ref = useRef<SVGLineElement>(null);
   const line2Ref = useRef<SVGLineElement>(null);
   const line3Ref = useRef<SVGLineElement>(null);
-  const [hidden, setHidden] = useState(false);
 
   const { scrollY, scrollYProgress } = useScroll();
   const navBg = useTransform(scrollY, [0, 100], ['rgba(10,10,10,0)', 'rgba(10,10,10,0.95)']);
   const navBorder = useTransform(scrollY, [80, 120], ['rgba(255,255,255,0)', 'rgba(255,255,255,0.08)']);
   const navBlur = useTransform(scrollY, [0, 100], ['blur(0px)', 'blur(12px)']);
 
-  // Hide on scroll down, show on scroll up
-  useMotionValueEvent(scrollY, 'change', (latest) => {
-    const prev = scrollY.getPrevious() ?? 0;
-    if (latest > 200 && latest > prev) setHidden(true);
-    else setHidden(false);
-  });
-
   const handleMenuToggle = useCallback(() => {
     audio.click();
     toggleNav();
   }, [toggleNav]);
+
+  // Lock body scroll when menu is open
+  useEffect(() => {
+    if (navOpen) {
+      const scrollY = window.scrollY;
+      document.body.style.position = 'fixed';
+      document.body.style.top = `-${scrollY}px`;
+      document.body.style.left = '0';
+      document.body.style.right = '0';
+      document.body.style.overflow = 'hidden';
+    } else {
+      const scrollY = document.body.style.top;
+      document.body.style.position = '';
+      document.body.style.top = '';
+      document.body.style.left = '';
+      document.body.style.right = '';
+      document.body.style.overflow = '';
+      window.scrollTo(0, parseInt(scrollY || '0') * -1);
+    }
+  }, [navOpen]);
 
   // Hamburger → X animation (3 lines)
   useEffect(() => {
@@ -65,10 +80,14 @@ export function Navigation() {
   const handleNavClick = useCallback((href: string) => {
     toggleNav();
     setTimeout(() => {
-      const el = document.querySelector(href);
-      el?.scrollIntoView({ behavior: 'smooth' });
+      if (href.startsWith('/')) {
+        navigate(href);
+      } else {
+        const el = document.querySelector(href);
+        el?.scrollIntoView({ behavior: 'smooth' });
+      }
     }, 600);
-  }, [toggleNav]);
+  }, [toggleNav, navigate]);
 
   const handleSoundToggle = () => {
     toggleSound();
@@ -95,8 +114,6 @@ export function Navigation() {
           backdropFilter: navBlur,
           WebkitBackdropFilter: navBlur,
         }}
-        animate={{ y: hidden ? -100 : 0 }}
-        transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
       >
         {/* Logo */}
         <a
@@ -132,17 +149,34 @@ export function Navigation() {
           {/* Inline nav links (desktop) — Tier 4 nav-link pattern */}
           <div className="hidden md:flex items-center" style={{ gap: 'var(--space-3)', marginRight: 'var(--space-2)' }}>
             {NAV_ITEMS.slice(0, 3).map((item) => (
-              <a
+              <button
                 key={item.href}
-                href={item.href}
+                type="button"
                 className="nav-link type-label"
-                style={{ color: 'var(--color-muted)', textTransform: 'uppercase' as const }}
+                style={{ color: 'var(--color-muted)', textTransform: 'uppercase' as const, background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
                 onMouseEnter={() => setVariant('link')}
                 onMouseLeave={() => setVariant('default')}
+                onClick={() => {
+                  if (window.location.pathname.endsWith('/') || window.location.pathname.endsWith('/Dracula-101')) {
+                    document.querySelector(item.href)?.scrollIntoView({ behavior: 'smooth' });
+                  } else {
+                    navigate('/');
+                    setTimeout(() => document.querySelector(item.href)?.scrollIntoView({ behavior: 'smooth' }), 100);
+                  }
+                }}
               >
                 {item.label}
-              </a>
+              </button>
             ))}
+            <Link
+              to="/resume"
+              className="nav-link type-label"
+              style={{ color: 'var(--color-muted)', textTransform: 'uppercase' as const }}
+              onMouseEnter={() => setVariant('link')}
+              onMouseLeave={() => setVariant('default')}
+            >
+              Resume
+            </Link>
           </div>
 
           {/* Sound toggle */}
@@ -204,7 +238,7 @@ export function Navigation() {
             />
 
             {/* Nav content — split layout */}
-            <div className="relative flex flex-col lg:flex-row h-full" style={{ zIndex: 11 }}>
+            <div className="relative flex flex-col lg:flex-row h-full overflow-y-auto" style={{ zIndex: 11, WebkitOverflowScrolling: 'touch' }}>
               {/* Left: navigation items */}
               <div
                 className="flex-1 flex flex-col justify-center"
