@@ -299,7 +299,7 @@ export function Hero() {
 
       <div
         ref={scrollIndRef}
-        className="absolute left-1/2 -translate-x-1/2 flex flex-col items-center opacity-0"
+        className="absolute left-1/2 -translate-x-1/2 hidden md:flex flex-col items-center opacity-0"
         style={{ bottom: 'var(--space-5)', zIndex: 'var(--z-raised)' as unknown as number, gap: 'var(--space-1)' }}
       >
         <span className="type-caption" style={{ color: 'var(--color-muted)', letterSpacing: 'var(--text-caption-tracking)' }}>SCROLL</span>
