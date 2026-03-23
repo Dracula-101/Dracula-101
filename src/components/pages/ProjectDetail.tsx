@@ -184,13 +184,13 @@ export function ProjectDetail() {
                     animate={{ opacity: 1 }}
                     transition={{ delay: 0.4, duration: transitions.entrance.duration }}
                 >
-                    <div className="grid" style={{ gridTemplateColumns: `repeat(${project.stats.length}, 1fr)` }}>
+                    <div className="grid grid-cols-2 sm:grid-cols-4">
                         {project.stats.map((stat, i) => (
                             <div
                                 key={stat.label}
                                 className="text-center"
                                 style={{
-                                    padding: 'var(--space-5) var(--space-3)',
+                                    padding: 'var(--space-3) var(--space-2)',
                                     borderRight: i < project.stats.length - 1 ? '1px solid var(--color-border)' : 'none',
                                 }}
                             >

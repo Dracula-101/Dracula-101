@@ -73,6 +73,17 @@ import syncDbStructure from '../assets/sync/db/structure.png';
 /* ── JetScan ──────────────────────────────────────── */
 import jetscanIcon from '../assets/jetscan/icon/icon.png';
 
+/* ── Skycast ─────────────────────────────────────── */
+import skycastIntro from '../assets/skycast/app/intro.jpg';
+import skycastHome from '../assets/skycast/app/home.jpg';
+import skycastDailyWeather from '../assets/skycast/app/daily_weather.jpg';
+import skycastForecast from '../assets/skycast/app/forecast.jpg';
+import skycastWeekly from '../assets/skycast/app/weekly.jpg';
+import skycastCurrentAqi from '../assets/skycast/app/current_aqi.jpg';
+import skycastAqiIndex from '../assets/skycast/app/aqi_index.jpg';
+import skycastDailyNews from '../assets/skycast/app/daily_news.jpg';
+import skycastIcon from '../assets/skycast/icon/icon.png';
+
 /**
  * Map of project id → image groups.
  * Projects without screenshots simply won't have an entry.
@@ -115,6 +126,22 @@ export const projectImages: Record<string, ProjectImageGroup[]> = {
                 { src: jetscanMergeAdding, label: 'Merge Selection' },
                 { src: jetscanProtectAdding, label: 'Protection' },
                 { src: jetscanScanQr, label: 'Scan QR' },
+            ],
+        },
+    ],
+    skycast: [
+        {
+            title: 'App Screenshots',
+            variant: 'mobile',
+            images: [
+                { src: skycastHome, label: 'Weather Home' },
+                { src: skycastIntro, label: 'Intro' },
+                { src: skycastDailyWeather, label: 'Daily Weather' },
+                { src: skycastForecast, label: 'Forecast' },
+                { src: skycastWeekly, label: 'Weekly Forecast' },
+                { src: skycastCurrentAqi, label: 'Air Quality' },
+                { src: skycastAqiIndex, label: 'AQI Index' },
+                { src: skycastDailyNews, label: 'Weather News' },
             ],
         },
     ],
@@ -195,4 +222,5 @@ export const projectIcons: Record<string, string> = {
     echo: echoIcon,
     sync: syncIcon,
     jetscan: jetscanIcon,
+    skycast: skycastIcon,
 };
