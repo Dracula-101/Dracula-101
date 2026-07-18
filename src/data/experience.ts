@@ -16,8 +16,30 @@ export interface Experience {
 
 export const experiences: Experience[] = [
     {
-        id: 'aim4u',
+        id: 'visa',
         index: '01',
+        role: 'Software Engineer Intern',
+        company: 'Visa Inc.',
+        location: 'Highlands Ranch, CO',
+        period: 'May 2026 — Present',
+        startDate: '2026-05',
+        endDate: 'Present',
+        type: 'internship',
+        description:
+            'Building VisionX — a production-grade automated log-triage platform that turns noisy application logs into ranked, actionable incidents. It ingests logs from APIs, CSV, and JSON, templates and embeds them, classifies and clusters errors into issues, scores each issue for risk against seasonal baselines, and can dispatch an autonomous agent to propose and ship a fix via GitHub and Jira through the Visa MCP Hub.',
+        highlights: [
+            'Built VisionX, an automated log-triage platform that ingests logs from APIs, CSV, and JSON, normalizes them with Drain3 template mining, and classifies errors with a frozen-embedding scikit-learn model — surfacing actionable issues instead of raw log counts',
+            'Engineered a real-time monitoring pipeline on Kafka, PostgreSQL, and Redis with UMAP + HDBSCAN auto-clustering and LLM-generated cluster labels, exposing Prometheus metrics and Alertmanager-driven alerts on a live Grafana dashboard',
+            'Designed a seasonal (day-of-week × hour) forecasting layer that scores incident risk against learned baselines, distinguishing live traffic spikes from historic batch backfills to prevent false alerts',
+            'Shipped a two-stage LangGraph ReAct agent (fast triage → deep reasoning) that reads the offending repository, proposes a fix, and autonomously opens a GitHub PR plus Jira comment through the Visa MCP Hub',
+            'Containerized the full stack with Docker and a modular FastAPI service architecture (storage repos, worker packages, and a FastMCP server), enforcing a 300-line, single-responsibility codebase standard',
+        ],
+        tech: ['Python', 'FastAPI', 'Kafka', 'PostgreSQL', 'Redis', 'scikit-learn', 'HDBSCAN', 'LangGraph', 'Prometheus', 'Grafana', 'Docker'],
+        color: '#3B82F6',
+    },
+    {
+        id: 'aim4u',
+        index: '02',
         role: 'Software Developer Intern',
         company: 'Aim4U Software Solutions Pvt. Ltd.',
         location: 'Mumbai, India',
@@ -38,7 +60,7 @@ export const experiences: Experience[] = [
     },
     {
         id: 'acuradyne',
-        index: '02',
+        index: '03',
         role: 'Research & Software Intern',
         company: 'Acuradyne Systems Pvt. Ltd., IIT Bombay Research Park',
         location: 'Mumbai, India',

@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { motion, useInView } from 'framer-motion';
 import { ArrowUpRight, Briefcase, FlaskConical } from 'lucide-react';
 import { experiences, education } from '../../data/experience';
+import { experienceLogos } from '../../data/experienceLogos';
 import { SectionWrapper } from '../layout/SectionWrapper';
 import { TextReveal } from '../ui/TextReveal';
 import { useCursorStore } from '../../store/cursor.store';
@@ -20,6 +21,7 @@ function ExperienceCard({ exp, index }: { exp: (typeof experiences)[0]; index: n
     const setVariant = useCursorStore((s) => s.setVariant);
     const navigate = useNavigate();
     const Icon = TYPE_ICONS[exp.type];
+    const logo = experienceLogos[exp.id];
 
     return (
         <motion.div
@@ -50,25 +52,34 @@ function ExperienceCard({ exp, index }: { exp: (typeof experiences)[0]; index: n
                     transitionTimingFunction: 'var(--ease-out)',
                 }}
             >
-                {/* Icon + Period */}
-                <div className="flex items-center md:w-56 flex-shrink-0" style={{ gap: 'var(--space-2)' }}>
-                    <div
-                        className="flex items-center justify-center flex-shrink-0 group-hover:border-[var(--color-muted)] transition-colors"
-                        style={{
-                            width: 40,
-                            height: 40,
-                            border: '1px solid var(--color-border)',
-                            background: `${exp.color}08`,
-                            transitionDuration: 'var(--duration-base)',
-                        }}
-                    >
-                        <Icon size={16} strokeWidth={1.5} style={{ color: 'var(--color-muted)', opacity: 0.6 }} />
-                    </div>
-                    <span className="type-label" style={{ color: 'var(--color-muted)', opacity: 0.6 }}>{exp.period}</span>
+                {/* Big company logo */}
+                <div
+                    className="flex items-center justify-center shrink-0 group-hover:border-(--color-muted) transition-colors"
+                    style={{
+                        width: 'clamp(64px, 9vw, 104px)',
+                        height: 'clamp(64px, 9vw, 104px)',
+                        border: '1px solid var(--color-border)',
+                        borderRadius: 'var(--radius-card)',
+                        background: logo ? logo.bg : `${exp.color}08`,
+                        transitionDuration: 'var(--duration-base)',
+                        overflow: 'hidden',
+                    }}
+                >
+                    {logo ? (
+                        <img
+                            src={logo.src}
+                            alt={`${exp.company} logo`}
+                            style={{ width: '100%', height: '100%', objectFit: 'contain', padding: logo.pad + 8, filter: logo.filter }}
+                            draggable={false}
+                        />
+                    ) : (
+                        <Icon size={28} strokeWidth={1.5} style={{ color: 'var(--color-muted)', opacity: 0.6 }} />
+                    )}
                 </div>
 
                 {/* Content */}
                 <div className="flex-1 min-w-0">
+                    <span className="type-label block" style={{ color: 'var(--color-muted)', opacity: 0.6, marginBottom: 6 }}>{exp.period}</span>
                     <h3
                         className="group-hover:text-[var(--color-accent)] transition-colors"
                         style={{

@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 import { ArrowLeft, ArrowUpRight, Briefcase, FlaskConical, Calendar, MapPin } from 'lucide-react';
 import { gsap } from 'gsap';
 import { experiences } from '../../data/experience';
+import { experienceLogos } from '../../data/experienceLogos';
 import { TechStack } from '../ui/TechIcon';
 import { useCursorStore } from '../../store/cursor.store';
 import { useUIStore } from '../../store/ui.store';
@@ -51,6 +52,7 @@ export function ExperienceDetail() {
     const currentIdx = experiences.findIndex((e) => e.id === id);
     const nextExp = experiences[(currentIdx + 1) % experiences.length];
     const Icon = exp.type === 'research' ? FlaskConical : Briefcase;
+    const logo = experienceLogos[exp.id];
 
     return (
         <div className="min-h-screen">
@@ -108,11 +110,21 @@ export function ExperienceDetail() {
                                 width: 56,
                                 height: 56,
                                 borderRadius: '50%',
-                                border: `2px solid ${exp.color}40`,
-                                background: `${exp.color}10`,
+                                border: logo ? '2px solid var(--color-border)' : `2px solid ${exp.color}40`,
+                                background: logo ? logo.bg : `${exp.color}10`,
+                                overflow: 'hidden',
                             }}
                         >
-                            <Icon size={22} strokeWidth={1.5} style={{ color: exp.color }} />
+                            {logo ? (
+                                <img
+                                    src={logo.src}
+                                    alt={`${exp.company} logo`}
+                                    style={{ width: '100%', height: '100%', objectFit: 'contain', padding: logo.pad + 3, filter: logo.filter }}
+                                    draggable={false}
+                                />
+                            ) : (
+                                <Icon size={22} strokeWidth={1.5} style={{ color: exp.color }} />
+                            )}
                         </div>
                         <div>
                             <span className="type-label block" style={{ color: exp.color, letterSpacing: '0.12em', textTransform: 'uppercase' }}>

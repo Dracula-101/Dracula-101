@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence, useInView } from 'framer-motion';
 import { ArrowUpRight } from 'lucide-react';
 import { projects } from '../../data/projects';
+import { projectIcons } from '../../data/projectImages';
 import { SectionWrapper } from '../layout/SectionWrapper';
 import { MarqueeReel } from '../ui/MarqueeReel';
 import { TextReveal } from '../ui/TextReveal';
@@ -15,6 +16,7 @@ function ProjectRow({ project, index }: { project: (typeof projects)[0]; index: 
   const navigate = useNavigate();
   const ref = useRef<HTMLDivElement>(null);
   const isInView = useInView(ref, { once: true, margin: '-8% 0px' });
+  const icon = projectIcons[project.id];
 
   return (
     <motion.div
@@ -55,46 +57,71 @@ function ProjectRow({ project, index }: { project: (typeof projects)[0]; index: 
         className="flex flex-col md:flex-row md:items-center relative"
         style={{ padding: `var(--space-4) 0`, gap: 'var(--space-4)', zIndex: 'var(--z-base)' as unknown as number }}
         animate={{
-          x: hovered ? 16 : 0,
+          x: hovered ? 32 : 0,
         }}
         transition={transitions.hoverLift}
       >
-        {/* Index */}
-        <motion.span
-          className="type-label hidden md:block"
-          animate={{ color: hovered ? project.color : 'var(--color-muted)' }}
-          transition={{ duration: 0.15 }}
-          style={{ minWidth: '2.5rem', opacity: hovered ? 1 : 0.6 }}
-        >
-          {project.index}
-        </motion.span>
-
-        {/* Title + descriptor */}
-        <div className="flex-1 min-w-0">
-          <h3
-            className="type-heading"
+        {/* Icon + Title + descriptor */}
+        <div className="flex-1 min-w-0 flex items-center" style={{ gap: 'var(--space-4)' }}>
+          <motion.div
+            className="shrink-0 flex items-center justify-center overflow-hidden"
             style={{
-              fontFamily: 'var(--font-display)',
-              fontSize: 'clamp(24px, 3vw, 42px)',
-              fontWeight: 'var(--text-heading-weight)' as unknown as number,
-              letterSpacing: 'var(--text-heading-tracking)',
-              lineHeight: 1.1,
-              color: 'var(--color-fg)',
+              width: 'clamp(64px, 9vw, 104px)',
+              height: 'clamp(64px, 9vw, 104px)',
+              borderRadius: 'var(--radius-card)',
+              border: '1px solid var(--color-border)',
+              background: icon ? 'transparent' : `${project.color}12`,
             }}
-          >
-            {project.title}
-          </h3>
-          <motion.p
-            className="type-label"
-            animate={{
-              opacity: hovered ? 1 : 0.4,
-              y: hovered ? 0 : 4,
-            }}
+            animate={{ borderColor: hovered ? `${project.color}66` : 'var(--color-border)' }}
             transition={{ duration: 0.15 }}
-            style={{ color: 'var(--color-muted)', marginTop: 'var(--space-1)' }}
           >
-            {project.descriptor}
-          </motion.p>
+            {icon ? (
+              <img
+                src={icon}
+                alt={`${project.title} icon`}
+                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                draggable={false}
+              />
+            ) : (
+              <span
+                style={{
+                  fontFamily: 'var(--font-display)',
+                  fontSize: 'clamp(22px, 3vw, 34px)',
+                  fontWeight: 700,
+                  color: project.color,
+                }}
+              >
+                {project.title.charAt(0)}
+              </span>
+            )}
+          </motion.div>
+
+          <div className="min-w-0">
+            <h3
+              className="type-heading"
+              style={{
+                fontFamily: 'var(--font-display)',
+                fontSize: 'clamp(24px, 3vw, 42px)',
+                fontWeight: 'var(--text-heading-weight)' as unknown as number,
+                letterSpacing: 'var(--text-heading-tracking)',
+                lineHeight: 1.1,
+                color: 'var(--color-fg)',
+              }}
+            >
+              {project.title}
+            </h3>
+            <motion.p
+              className="type-label"
+              animate={{
+                opacity: hovered ? 1 : 0.4,
+                y: hovered ? 0 : 4,
+              }}
+              transition={{ duration: 0.15 }}
+              style={{ color: 'var(--color-muted)', marginTop: 'var(--space-1)' }}
+            >
+              {project.descriptor}
+            </motion.p>
+          </div>
         </div>
 
         {/* Tech pills — desktop (Tier 2 card pattern) */}
@@ -172,7 +199,7 @@ export function Work() {
       {/* Marquee divider */}
       <div style={{ borderTop: '1px solid var(--color-border)', borderBottom: '1px solid var(--color-border)', padding: `var(--space-2) 0`, marginBottom: 'var(--space-6)' }} className="overflow-hidden">
         <MarqueeReel
-          text="ECHO · SYNC · JETSCAN · NESTERS"
+          text="VISIONX · ECHO · SYNC · JETSCAN · NESTERS"
           speed={35}
           className="type-label text-[var(--color-muted)] opacity-30"
         />

@@ -23,8 +23,34 @@ export interface Project {
 
 export const projects: Project[] = [
   {
-    id: 'echo',
+    id: 'visionx',
     index: '01',
+    title: 'VisionX',
+    descriptor: 'Autonomous Log-Triage Platform',
+    category: 'Distributed Systems · AI Agents',
+    year: '2026',
+    period: 'May 2026 — Present',
+    tech: ['Python', 'FastAPI', 'Kafka', 'PostgreSQL', 'Redis', 'Drain3', 'scikit-learn', 'UMAP', 'HDBSCAN', 'LangGraph', 'Prometheus', 'Grafana', 'Docker'],
+    description: 'VisionX is a production log-triage platform built at Visa that turns noisy application logs into ranked, actionable incidents. Logs from APIs, CSV, and JSON are templated with Drain3, embedded, classified with a frozen-embedding model, and clustered into issues with UMAP + HDBSCAN. Each issue is scored for risk against seasonal baselines, and a two-stage LangGraph agent can read the offending repo, propose a fix, and ship it as a GitHub PR and Jira comment through the Visa MCP Hub.',
+    highlights: [
+      'Hybrid ingestion pipeline: Drain3 template mining plus a frozen-embedding scikit-learn classifier surfaces actionable error patterns instead of raw log counts',
+      'UMAP + HDBSCAN auto-clustering with LLM-generated umbrella labels groups related errors into deduplicated issues, tracking regressions and resurfaced problems',
+      'Seasonal day-of-week × hour baselines separate live traffic bursts from historic batch backfills, so Prometheus + Alertmanager only fire on genuine anomalies',
+      'Two-stage ReAct agent (fast triage → deep reasoning) reads the repo, edits files, and autonomously opens a GitHub PR and Jira comment via the Visa MCP Hub',
+      'Modular FastAPI backend — a Kafka/Postgres event pipeline, Redis caching, a FastMCP server, and a Docker-composed observability stack (Prometheus, Alertmanager, Grafana)',
+    ],
+    stats: [
+      { value: '3', label: 'Ingest Formats' },
+      { value: 'RT', label: 'Log Triage' },
+      { value: 'AI', label: 'Auto-Fix Agent' },
+      { value: 'PR', label: 'GitHub + Jira' },
+    ],
+    color: '#3B82F6',
+    gradient: 'from-blue-900/20 to-transparent',
+  },
+  {
+    id: 'echo',
+    index: '02',
     title: 'Echo',
     descriptor: 'Real-Time Messaging Platform',
     category: 'Full-Stack · Distributed Systems',
@@ -51,7 +77,7 @@ export const projects: Project[] = [
   },
   {
     id: 'sync',
-    index: '02',
+    index: '03',
     title: 'Sync',
     descriptor: 'Social Media Ecosystem',
     category: 'Full-Stack · Cross-Platform',
@@ -78,7 +104,7 @@ export const projects: Project[] = [
   },
   {
     id: 'jetscan',
-    index: '03',
+    index: '04',
     title: 'JetScan',
     descriptor: 'Intelligent Document Scanner',
     category: 'Android · Computer Vision',
@@ -105,7 +131,7 @@ export const projects: Project[] = [
   },
   {
     id: 'nesters',
-    index: '04',
+    index: '05',
     title: 'Nesters',
     descriptor: 'Roommate & Housing Platform',
     category: 'Cross-Platform · Real-Time',
@@ -132,7 +158,7 @@ export const projects: Project[] = [
   },
   {
     id: 'skycast',
-    index: '05',
+    index: '06',
     title: 'Skycast',
     descriptor: 'Modern Weather Application',
     category: 'Android · Material Design',
