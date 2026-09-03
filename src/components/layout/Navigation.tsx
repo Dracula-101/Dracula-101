@@ -2,7 +2,7 @@ import { useRef, useEffect, useCallback } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { motion, AnimatePresence, useScroll, useTransform } from 'framer-motion';
 import { gsap } from 'gsap';
-import { Volume2, VolumeX, ArrowRight, ArrowUpRight } from 'lucide-react';
+import { Volume2, VolumeX, ArrowRight, ArrowUpRight, Search } from 'lucide-react';
 import { useUIStore } from '../../store/ui.store';
 import { useCursorStore } from '../../store/cursor.store';
 import { audio, enableSound, disableSound } from '../../utils/audio';
@@ -25,7 +25,8 @@ const SOCIAL_LINKS = [
 ];
 
 export function Navigation() {
-  const { navOpen, toggleNav, soundEnabled, toggleSound } = useUIStore();
+  const { navOpen, toggleNav, soundEnabled, toggleSound, setPaletteOpen } = useUIStore();
+  const isMac = typeof navigator !== 'undefined' && /Mac|iPhone|iPad/.test(navigator.platform || navigator.userAgent);
   const setVariant = useCursorStore((s) => s.setVariant);
   const navigate = useNavigate();
   const overlayRef = useRef<HTMLDivElement>(null);
@@ -178,6 +179,30 @@ export function Navigation() {
               Resume
             </Link>
           </div>
+
+          {/* Command palette trigger */}
+          <button
+            type="button"
+            onClick={() => { audio.click(); setPaletteOpen(true); }}
+            className="flex items-center transition-colors"
+            style={{
+              gap: 'var(--space-1)',
+              color: 'var(--color-muted)',
+              border: '1px solid var(--color-border)',
+              borderRadius: 'var(--radius-subtle)',
+              padding: `4px var(--space-1)`,
+              background: 'none',
+              transitionDuration: 'var(--duration-base)',
+            }}
+            onMouseEnter={() => setVariant('button')}
+            onMouseLeave={() => setVariant('default')}
+            aria-label="Open command palette"
+          >
+            <Search size={13} strokeWidth={1.5} />
+            <span className="type-caption hidden sm:inline" style={{ opacity: 0.7 }}>
+              {isMac ? '\u2318' : 'Ctrl '}K
+            </span>
+          </button>
 
           {/* Sound toggle */}
           <button

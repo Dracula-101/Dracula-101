@@ -22,6 +22,7 @@ import { CountUp } from '../ui/CountUp';
 import { useCursorStore } from '../../store/cursor.store';
 import { useUIStore } from '../../store/ui.store';
 import { transitions } from '../../utils/spring';
+import { useDocumentMeta } from '../../hooks/useDocumentMeta';
 
 const CONTACT_PILLS = [
   { icon: Mail, label: 'pratikpujari1000@gmail.com', href: 'mailto:pratikpujari1000@gmail.com' },
@@ -46,6 +47,12 @@ const SKILL_GROUPS = [
 ];
 
 export function ResumePage() {
+    useDocumentMeta({
+        title: 'Résumé',
+        description: 'Full-stack engineer — distributed systems, mobile, and applied ML. Education, experience, projects, and technical skills.',
+        path: 'resume',
+    });
+
   const setVariant = useCursorStore((s) => s.setVariant);
   const reducedMotion = useUIStore((s) => s.reducedMotion);
   const heroRef = useRef<HTMLDivElement>(null);

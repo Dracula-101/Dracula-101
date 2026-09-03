@@ -11,10 +11,17 @@ import { ImagePager } from '../ui/ImagePager';
 import { useCursorStore } from '../../store/cursor.store';
 import { useUIStore } from '../../store/ui.store';
 import { transitions } from '../../utils/spring';
+import { useDocumentMeta } from '../../hooks/useDocumentMeta';
 
 export function ProjectDetail() {
     const { id } = useParams<{ id: string }>();
     const project = projects.find((p) => p.id === id);
+
+    useDocumentMeta({
+        title: project ? `${project.title} — ${project.descriptor}` : 'Project not found',
+        description: project?.description,
+        path: project ? `project/${project.id}` : undefined,
+    });
     const setVariant = useCursorStore((s) => s.setVariant);
     const reducedMotion = useUIStore((s) => s.reducedMotion);
     const heroRef = useRef<HTMLDivElement>(null);

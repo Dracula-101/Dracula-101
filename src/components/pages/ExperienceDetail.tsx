@@ -9,10 +9,17 @@ import { TechStack } from '../ui/TechIcon';
 import { useCursorStore } from '../../store/cursor.store';
 import { useUIStore } from '../../store/ui.store';
 import { transitions } from '../../utils/spring';
+import { useDocumentMeta } from '../../hooks/useDocumentMeta';
 
 export function ExperienceDetail() {
     const { id } = useParams<{ id: string }>();
     const exp = experiences.find((e) => e.id === id);
+
+    useDocumentMeta({
+        title: exp ? `${exp.role} at ${exp.company}` : 'Role not found',
+        description: exp?.description,
+        path: exp ? `experience/${exp.id}` : undefined,
+    });
     const setVariant = useCursorStore((s) => s.setVariant);
     const reducedMotion = useUIStore((s) => s.reducedMotion);
     const heroRef = useRef<HTMLDivElement>(null);

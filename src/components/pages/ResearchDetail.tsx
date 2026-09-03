@@ -18,6 +18,7 @@ import { TechStack } from '../ui/TechIcon';
 import { useCursorStore } from '../../store/cursor.store';
 import { useUIStore } from '../../store/ui.store';
 import { transitions } from '../../utils/spring';
+import { useDocumentMeta } from '../../hooks/useDocumentMeta';
 
 type ResearchItem =
     | ((typeof publications)[0] & { kind: 'publication' })
@@ -69,6 +70,12 @@ function AbstractBlock({ text, label }: { text: string; label: string }) {
 export function ResearchDetail() {
     const { id } = useParams<{ id: string }>();
     const item = id ? findItem(id) : null;
+
+    useDocumentMeta({
+        title: item ? (item.kind === 'publication' ? item.shortTitle : item.title) : 'Publication not found',
+        description: item ? (item.kind === 'publication' ? item.abstract : item.description) : undefined,
+        path: item ? `research/${item.id}` : undefined,
+    });
     const setVariant = useCursorStore((s) => s.setVariant);
     const reducedMotion = useUIStore((s) => s.reducedMotion);
     const heroRef = useRef<HTMLDivElement>(null);

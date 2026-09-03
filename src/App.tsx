@@ -20,12 +20,17 @@ import { ProjectDetail } from './components/pages/ProjectDetail';
 import { ExperienceDetail } from './components/pages/ExperienceDetail';
 import { ResearchDetail } from './components/pages/ResearchDetail';
 import { ResumePage } from './components/pages/ResumePage';
+import { NotFound } from './components/pages/NotFound';
+import { CommandPalette } from './components/ui/CommandPalette';
 import { useReducedMotion } from './hooks/useReducedMotion';
 import { useScrollProgress } from './hooks/useScrollProgress';
+import { useDocumentMeta } from './hooks/useDocumentMeta';
+import { registerLenis } from './utils/scroll';
 
 gsap.registerPlugin(ScrollTrigger);
 
 function HomePage() {
+  useDocumentMeta({});
   return (
     <>
       <Hero />
@@ -65,6 +70,7 @@ export function App() {
       smoothWheel: true,
     });
     lenisRef.current = lenis;
+    registerLenis(lenis);
 
     // Plug Lenis into GSAP ScrollTrigger
     lenis.on('scroll', ScrollTrigger.update);
@@ -76,6 +82,7 @@ export function App() {
 
     return () => {
       raf.remove('lenis');
+      registerLenis(null);
       lenis.destroy();
       lenisRef.current = null;
     };
@@ -85,6 +92,7 @@ export function App() {
     <>
       <ScrollToTop lenisRef={lenisRef} />
       <CustomCursor />
+      <CommandPalette />
       <GridOverlay />
       <Navigation />
 
@@ -95,6 +103,7 @@ export function App() {
           <Route path="/experience/:id" element={<ExperienceDetail />} />
           <Route path="/research/:id" element={<ResearchDetail />} />
           <Route path="/resume" element={<ResumePage />} />
+          <Route path="*" element={<NotFound />} />
         </Routes>
       </main>
 
