@@ -42,8 +42,8 @@ const MODEL_FILES = [
 /* Per-model orientation corrections [rotX, rotY, rotZ] in radians.
    Applied to the inner model so pivot rotation stays clean. */
 const MODEL_ROTATIONS: [number, number, number][] = [
-  [Math.PI / 2, 0, 0],              // 0 — Phone: stand upright (Z→Y)
-  [0, Math.PI, 0],                   // 1 — Laptop: face towards camera
+  [0, 0, 0],              // 0 — Phone: stand upright (Z→Y)
+  [0, 0, 0],                   // 1 — Laptop: face towards camera
   [0, 0, 0],                        // 2 — Server
 ];
 
