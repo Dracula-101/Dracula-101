@@ -34,14 +34,16 @@ interface HeroGeometryConfig {
 }
 
 const MODEL_FILES = [
-  'low_poly_android_phone.glb',   // 0 — Mobile
-  'laptop.glb',                    // 1 — Web
-  'server_rack.glb',               // 2 — Server
+  'low_poly_android_phone.glb',    // 0 — Android
+  'iPhone.glb',                    // 1 — iOS
+  'laptop.glb',                    // 2 — Web 
+  'server_rack.glb',               // 3 — Server
 ];
 
 /* Per-model orientation corrections [rotX, rotY, rotZ] in radians.
    Applied to the inner model so pivot rotation stays clean. */
 const MODEL_ROTATIONS: [number, number, number][] = [
+  [0, 0, 0],              // 0 — Phone: stand upright (Z→Y)
   [0, 0, 0],              // 0 — Phone: stand upright (Z→Y)
   [0, 0, 0],                   // 1 — Laptop: face towards camera
   [0, 0, 0],                        // 2 — Server

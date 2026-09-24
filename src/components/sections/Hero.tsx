@@ -10,7 +10,7 @@ import { Preloader } from '../ui/Preloader';
 import { useCursorStore } from '../../store/cursor.store';
 import { useUIStore } from '../../store/ui.store';
 
-const LABELS = ['Mobile', 'Web', 'Server'] as const;
+const LABELS = ['Android', 'iOS', 'Web', 'Server'] as const;
 
 function SplitLine({ text, refCb }: { text: string; refCb: (el: HTMLSpanElement | null) => void }) {
   return (
