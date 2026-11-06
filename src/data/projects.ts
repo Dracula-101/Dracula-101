@@ -228,7 +228,7 @@ const androidEcho: Partial<Project> = {
 };
 
 const order = {
-  swe: ['visionx', 'pivot', 'echo', 'sync'],
+  swe: ['pivot', 'visionx', 'echo', 'sync'], // most recent first
   android: ['echo', 'jetscan', 'skycast', 'nesters'],
 }[VARIANT];
 

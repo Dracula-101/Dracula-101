@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" fill="#3B82F6"/>
+  <!-- log lines -->
+  <g stroke="#fff" stroke-linecap="round" stroke-width="26">
+    <line x1="104" y1="150" x2="300" y2="150" opacity=".35"/>
+    <line x1="104" y1="214" x2="250" y2="214" opacity=".55"/>
+    <line x1="104" y1="278" x2="230" y2="278" opacity=".35"/>
+    <line x1="104" y1="342" x2="196" y2="342" opacity=".2"/>
+  </g>
+  <!-- lens -->
+  <circle cx="290" cy="250" r="86" fill="#3B82F6" fill-opacity=".55" stroke="#fff" stroke-width="28"/>
+  <line x1="352" y1="312" x2="410" y2="370" stroke="#fff" stroke-width="34" stroke-linecap="round"/>
+  <!-- flagged issue -->
+  <circle cx="290" cy="250" r="22" fill="#fff"/>
+</svg>

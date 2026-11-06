@@ -78,6 +78,10 @@ import pivotRestore from '../assets/pivot/fig/restore.png';
 import pivotCredit from '../assets/pivot/fig/credit_accuracy.png';
 import pivotTraining from '../assets/pivot/fig/training.png';
 import pivotArchitecture from '../assets/pivot/architecture.mermaid?raw';
+import pivotIcon from '../assets/pivot/icon/icon.svg';
+
+/* ── VisionX ──────────────────────────────────────── */
+import visionxIcon from '../assets/visionx/icon/icon.svg';
 
 /* ── Skycast ─────────────────────────────────────── */
 import skycastIntro from '../assets/skycast/app/intro.jpg';
@@ -267,6 +271,8 @@ export const projectDiagrams: Record<string, ProjectDiagram[]> = {
  * Map of project id → app icon src.
  */
 export const projectIcons: Record<string, string> = {
+    pivot: pivotIcon,
+    visionx: visionxIcon,
     nesters: nestersIcon,
     echo: echoIcon,
     sync: syncIcon,

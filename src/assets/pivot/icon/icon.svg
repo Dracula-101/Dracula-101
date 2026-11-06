@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" fill="#EF4444"/>
+  <g fill="none" stroke-linecap="round" stroke-width="28">
+    <!-- trajectory up to the fork point -->
+    <path d="M110 256 H230" stroke="#fff"/>
+    <!-- forked branches -->
+    <path d="M230 256 C300 256 300 146 380 146" stroke="#fff" opacity=".35"/>
+    <path d="M230 256 H380" stroke="#fff"/>
+    <path d="M230 256 C300 256 300 366 380 366" stroke="#fff" opacity=".35"/>
+  </g>
+  <circle cx="230" cy="256" r="30" fill="#fff"/>
+  <circle cx="400" cy="146" r="22" fill="#fff" opacity=".35"/>
+  <circle cx="400" cy="256" r="26" fill="#fff"/>
+  <circle cx="400" cy="366" r="22" fill="#fff" opacity=".35"/>
+</svg>
