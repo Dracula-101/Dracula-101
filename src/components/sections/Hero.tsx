@@ -179,7 +179,7 @@ export function Hero() {
                 className="rounded-full animate-pulse"
                 style={{ width: 6, height: 6, background: 'var(--color-accent)' }}
               />
-              Available for work
+              Open to new grad roles
             </span>
           </div>
 

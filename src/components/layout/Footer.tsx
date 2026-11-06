@@ -44,7 +44,7 @@ export function Footer() {
         onMouseLeave={() => setMarqueeReverse(false)}
       >
         <MarqueeReel
-          text="AVAILABLE FOR NEW PROJECTS — LET'S BUILD SOMETHING GREAT"
+          text="OPEN TO NEW GRAD ROLES — LET'S BUILD SOMETHING GREAT"
           speed={35}
           reverse={marqueeReverse}
           className="type-label"
