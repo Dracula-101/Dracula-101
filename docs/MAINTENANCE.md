@@ -29,7 +29,7 @@ GitHub Pages build, which still served the last-published copies.
    ```
 
 2. **Public files come down directly** — anything in `public/` keeps its name in
-   the build (`models/*.glb`, `resume-preview.png`, `resume.pdf`).
+   the build (`models/*.glb`, `resume-*.pdf`, `resume-*-preview.png`).
 
    ```bash
    curl -sS https://dracula-101.github.io/Dracula-101/resume-preview.png -o public/resume-preview.png

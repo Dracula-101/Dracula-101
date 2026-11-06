@@ -14,7 +14,8 @@ import {
   Briefcase,
   FlaskConical,
 } from 'lucide-react';
-import { experiences, education, skills } from '../../data/experience';
+import { experiences, education, skillGroups } from '../../data/experience';
+import { copy } from '../../data/variant';
 import { projects } from '../../data/projects';
 import { MagneticButton } from '../ui/MagneticButton';
 import { TechIcon } from '../ui/TechIcon';
@@ -33,23 +34,16 @@ const CONTACT_PILLS = [
 ];
 
 const STATS = [
-  { display: '3.96', label: 'GPA AT CU BOULDER' },
-  { value: 4, label: 'PROJECTS SHIPPED', suffix: '+' },
-  { value: 2, label: 'INTERNSHIPS' },
-  { value: 10, label: 'TECHNOLOGIES', suffix: '+' },
+  { display: '3.8', label: 'GPA AT CU BOULDER' },
+  ...copy.aboutStats.map((s) => ({ ...s, label: s.label.toUpperCase() })),
 ];
 
-const SKILL_GROUPS = [
-  { title: 'LANGUAGES', items: skills.languages },
-  { title: 'DATABASES', items: skills.databases },
-  { title: 'FRAMEWORKS', items: skills.frameworks },
-  { title: 'TOOLS', items: skills.tools },
-];
+const SKILL_GROUPS = skillGroups;
 
 export function ResumePage() {
     useDocumentMeta({
         title: 'Résumé',
-        description: 'Full-stack engineer — distributed systems, mobile, and applied ML. Education, experience, projects, and technical skills.',
+        description: `${copy.role} résumé: education, experience, projects, and technical skills.`,
         path: 'resume',
     });
 
@@ -152,7 +146,7 @@ export function ResumePage() {
               className="type-subheading"
               style={{ color: 'var(--color-muted)', marginBottom: 'var(--space-6)' }}
             >
-              Full-Stack Engineer & Builder
+              {copy.role}
             </p>
 
             {/* Contact pills */}
@@ -193,7 +187,7 @@ export function ResumePage() {
 
             {/* Download button */}
             <div data-animate>
-              <MagneticButton variant="primary" href={`${import.meta.env.BASE_URL}resume.pdf`} download strength={0.08}>
+              <MagneticButton variant="primary" href={`${import.meta.env.BASE_URL}${copy.resumePdf}`} download strength={0.08}>
                 Download PDF
                 <Download size={16} strokeWidth={1.5} />
               </MagneticButton>
@@ -210,7 +204,7 @@ export function ResumePage() {
             transition={{ delay: 0.5, ...transitions.entrance }}
           >
             <a
-              href={`${import.meta.env.BASE_URL}resume.pdf`}
+              href={`${import.meta.env.BASE_URL}${copy.resumePdf}`}
               target="_blank"
               rel="noopener noreferrer"
               className="block group"
@@ -226,7 +220,7 @@ export function ResumePage() {
                 }}
               >
                 <img
-                  src={`${import.meta.env.BASE_URL}resume-preview.png`}
+                  src={`${import.meta.env.BASE_URL}${copy.resumePreview}`}
                   alt="Resume preview"
                   className="w-full h-auto block"
                   loading="eager"

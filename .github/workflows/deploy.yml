@@ -29,7 +29,10 @@ jobs:
       - run: npm run build
 
       # SPA fallback — GitHub Pages serves 404.html for unknown routes
-      - run: cp dist/index.html dist/404.html
+      # Real files for the two variant homes, so resume links get HTTP 200 (not 404)
+      - run: |
+          cp dist/index.html dist/404.html
+          for v in swe android; do mkdir -p dist/$v && cp dist/index.html dist/$v/index.html; done
 
       - uses: actions/upload-pages-artifact@v3
         with:

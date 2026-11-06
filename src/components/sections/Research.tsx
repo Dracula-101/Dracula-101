@@ -309,7 +309,7 @@ export function Research() {
                         </h2>
                     </TextReveal>
                 </div>
-                <p className="type-body" style={{ color: 'var(--color-muted)', marginTop: 'var(--space-2)' }}>Where I've worked</p>
+                <p className="type-body" style={{ color: 'var(--color-muted)', marginTop: 'var(--space-2)' }}>Papers &amp; publications</p>
             </div>
 
             {/* Stats strip */}

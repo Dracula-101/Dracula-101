@@ -9,6 +9,7 @@ import { MagneticButton } from '../ui/MagneticButton';
 import { Preloader } from '../ui/Preloader';
 import { useCursorStore } from '../../store/cursor.store';
 import { useUIStore } from '../../store/ui.store';
+import { copy } from '../../data/variant';
 
 const LABELS = ['Android', 'iOS', 'Web', 'Server'] as const;
 
@@ -188,13 +189,13 @@ export function Hero() {
             onMouseLeave={() => setVariant('default')}
           >
             <div className="overflow-hidden">
-              <SplitLine text="FULL-STACK" refCb={(el) => { (line1Ref as React.MutableRefObject<HTMLSpanElement | null>).current = el; }} />
+              <SplitLine text={copy.heroLines[0]} refCb={(el) => { (line1Ref as React.MutableRefObject<HTMLSpanElement | null>).current = el; }} />
             </div>
             <div className="overflow-hidden hero-heading--accent">
-              <SplitLine text="ENGINEER" refCb={(el) => { (line2Ref as React.MutableRefObject<HTMLSpanElement | null>).current = el; }} />
+              <SplitLine text={copy.heroLines[1]} refCb={(el) => { (line2Ref as React.MutableRefObject<HTMLSpanElement | null>).current = el; }} />
             </div>
             <div className="overflow-hidden">
-              <SplitLine text="& BUILDER" refCb={(el) => { (line3Ref as React.MutableRefObject<HTMLSpanElement | null>).current = el; }} />
+              <SplitLine text={copy.heroLines[2]} refCb={(el) => { (line3Ref as React.MutableRefObject<HTMLSpanElement | null>).current = el; }} />
             </div>
           </div>
 
@@ -212,8 +213,7 @@ export function Hero() {
 
           <div ref={subtitleRef} className="opacity-0" style={{ marginTop: 'var(--space-4)' }}>
             <p className="type-body max-w-xl" style={{ color: 'var(--color-muted)' }}>
-              Crafting distributed systems, mobile apps, and intelligent interfaces.
-              Based in Boulder, CO — available worldwide.
+              {copy.heroSubtitle}
             </p>
           </div>
 

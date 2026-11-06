@@ -1,3 +1,5 @@
+import { VARIANT, pick } from './variant';
+
 export interface Experience {
     id: string;
     index: string;
@@ -14,27 +16,21 @@ export interface Experience {
     color: string;
 }
 
-export const experiences: Experience[] = [
+const base: Experience[] = [
     {
         id: 'visa',
         index: '01',
         role: 'Software Engineer Intern',
         company: 'Visa Inc.',
         location: 'Highlands Ranch, CO',
-        period: 'May 2026 — Present',
+        period: 'May 2026 — Aug 2026',
         startDate: '2026-05',
-        endDate: 'Present',
+        endDate: '2026-08',
         type: 'internship',
         description:
-            'Building VisionX — a production-grade automated log-triage platform that turns noisy application logs into ranked, actionable incidents. It ingests logs from APIs, CSV, and JSON, templates and embeds them, classifies and clusters errors into issues, scores each issue for risk against seasonal baselines, and can dispatch an autonomous agent to propose and ship a fix via GitHub and Jira through the Visa MCP Hub.',
-        highlights: [
-            'Built VisionX, an automated log-triage platform that ingests logs from APIs, CSV, and JSON, normalizes them with Drain3 template mining, and classifies errors with a frozen-embedding scikit-learn model — surfacing actionable issues instead of raw log counts',
-            'Engineered a real-time monitoring pipeline on Kafka, PostgreSQL, and Redis with UMAP + HDBSCAN auto-clustering and LLM-generated cluster labels, exposing Prometheus metrics and Alertmanager-driven alerts on a live Grafana dashboard',
-            'Designed a seasonal (day-of-week × hour) forecasting layer that scores incident risk against learned baselines, distinguishing live traffic spikes from historic batch backfills to prevent false alerts',
-            'Shipped a two-stage LangGraph ReAct agent (fast triage → deep reasoning) that reads the offending repository, proposes a fix, and autonomously opens a GitHub PR plus Jira comment through the Visa MCP Hub',
-            'Containerized the full stack with Docker and a modular FastAPI service architecture (storage repos, worker packages, and a FastMCP server), enforcing a 300-line, single-responsibility codebase standard',
-        ],
-        tech: ['Python', 'FastAPI', 'Kafka', 'PostgreSQL', 'Redis', 'scikit-learn', 'HDBSCAN', 'LangGraph', 'Prometheus', 'Grafana', 'Docker'],
+            'Built VisionX, an AI log-triage platform for the ATM monitoring team. It templates and classifies ~1M logs/hour, clusters failures into ranked P0–P3 issues, scores each source for outage risk, and dispatches an autonomous agent that ships fixes as GitHub pull requests with Jira comments through an internal MCP hub.',
+        highlights: [],
+        tech: [],
         color: '#3B82F6',
     },
     {
@@ -47,15 +43,9 @@ export const experiences: Experience[] = [
         startDate: '2023-11',
         endDate: '2024-12',
         type: 'internship',
-        description:
-            'Led development of two Flutter applications — Dermalens, an AI-powered healthcare platform, and Autobuddys, a socially impactful app for autistic children. Worked across mobile, cloud, and ML pipelines in a fast-paced startup environment.',
-        highlights: [
-            'Architected Dermalens, an AI-powered healthcare platform connecting patients with verified dermatologists using Flutter, AWS Lambda & Detectron2 for skin disease classification at 90–95% accuracy — 300+ downloads',
-            'Led technical integration of Agora SDK for HIPAA-compliant real-time video consultations, enabling end-to-end telemedicine workflow from diagnosis to digital prescription management',
-            'Pioneered rigorous testing protocols maintaining high code coverage while mentoring junior interns on collaborative development practices and software QA',
-            'Co-developed Autobuddys, a Flutter application with interactive mini-games designed to help autistic children maintain focus — 250+ downloads with built-in performance analytics',
-        ],
-        tech: ['Flutter', 'Dart', 'AWS Lambda', 'Detectron2', 'Agora SDK', 'Firebase', 'Python'],
+        description: '',
+        highlights: [],
+        tech: [],
         color: '#F5A623',
     },
     {
@@ -68,18 +58,93 @@ export const experiences: Experience[] = [
         startDate: '2023-01',
         endDate: '2023-06',
         type: 'research',
-        description:
-            'Engineered IoT health monitoring hardware and software for aging assessment through radial pulse analysis. Worked at the intersection of embedded systems, mobile development, and medical device engineering.',
-        highlights: [
-            'Engineered IoT health monitoring device for aging assessment through radial pulse analysis, achieving 566% improvement in data transfer rates by implementing BLE protocol with ESP32 microcontroller',
-            'Developed comprehensive Flutter mobile patient management system featuring real-time pulse data visualization, secure data collection, and automated report generation for medical professionals',
-            'Designed secure communication architecture implementing AES128 encryption and 4-pin authentication, ensuring data protection for sensitive medical information',
-            'Innovated Over-The-Air (OTA) firmware update mechanism replacing manual USB updates, reducing production deployment time by 40%',
-        ],
-        tech: ['Flutter', 'Dart', 'ESP32', 'BLE', 'AES128', 'IoT', 'C++'],
+        description: '',
+        highlights: [],
+        tech: [],
         color: '#6366F1',
     },
 ];
+
+type ExperienceCopy = Pick<Experience, 'highlights' | 'tech'> & Partial<Pick<Experience, 'description'>>;
+
+/* Bullets mirror the tailored resumes (source of truth: career KB). */
+const byVariant: Record<'swe' | 'android', Record<string, ExperienceCopy>> = {
+    swe: {
+        visa: {
+            highlights: [
+                'Architected VisionX, an AI log-triage platform for ATM monitoring: Drain3 templating, a 20-class embedding classifier (82% F1) with LLM escalation, and HDBSCAN clustering that condenses ~30K templates into ~200 ranked issues',
+                'Built a LangGraph remediation agent that picks up P0 issues, clones the failing repository, diagnoses the root cause, and ships each fix as a GitHub pull request with a Jira comment; its fixes for real issues were merged',
+                'Engineered a fault-tolerant FastAPI + Kafka pipeline (9 topics, retry backoff, dead-letter queue) over PostgreSQL, sustaining ~1M logs/hour by classifying each log template once and caching embeddings in Redis and SQLite',
+                'Cut triage time 50–60% versus manual Splunk and Grafana searches; demoed VisionX live to VP-level leadership',
+                'Stopped false on-call pages by keeping backfilled logs (600s+ lag) out of live Prometheus and Alertmanager rules',
+                'Built a 0–100 outage risk engine on seasonal baselines, flagging at-risk ATM sources early with a recommended action',
+            ],
+            tech: ['Python', 'FastAPI', 'Kafka', 'PostgreSQL', 'Redis', 'LangGraph', 'scikit-learn', 'HDBSCAN', 'Prometheus', 'Grafana', 'Docker', 'React'],
+        },
+        aim4u: {
+            description:
+                'Owned the cloud backend of Dermalens, an AI telehealth platform: a Django REST API and website with Stripe payments, serverless model inference on AWS Lambda, and the AWS infrastructure behind it.',
+            highlights: [
+                'Architected the cloud backend of Dermalens, an AI telehealth platform: a Django REST API and website for booking, e-prescriptions, and Stripe payments with webhook-confirmed bookings, refunds, and Connect doctor payouts',
+                'Replaced the legacy TensorFlow predictor with a Detectron2 + PyTorch skin-disease model (90–95% accuracy), served as serverless inference on AWS Lambda behind API Gateway so it scales independently of the backend',
+                'Deployed the backend on self-managed Kubernetes on EC2; owned Route 53, S3, ECR, IAM, and CloudWatch',
+                "Pitched Dermalens to investors at 3+ startup competitions; shipping the judges' feedback lifted downloads by 23%",
+                'Built GitHub Actions CI/CD with lint, pre-merge checks, and integration tests; mentored 4–5 junior interns',
+            ],
+            tech: ['Python', 'Django', 'Stripe', 'AWS Lambda', 'API Gateway', 'Kubernetes', 'EC2', 'PyTorch', 'Detectron2', 'GitHub Actions'],
+        },
+        acuradyne: {
+            description:
+                'Built the software around an IoT radial-pulse device for aging assessment: the BLE data link, cloud patient records, and a Node.js report backend on GCP.',
+            highlights: [
+                'Co-designed a chunked BLE protocol on ESP32 for an IoT pulse monitor: 566% faster transfer (850ms to 127ms)',
+                'Migrated patient records from offline, device-locked SQLite to Firestore, syncing the same data across all devices',
+                'Built a Node.js backend on GCP with JWT auth, generating 1K+ clinical pulse reports per day via Puppeteer',
+                'Replaced manual USB flashing with OTA firmware updates (checksums, rollback), cutting production time ~40%',
+                'Automated tester builds for end-to-end internal testing and set up a Docker dev environment; led 3–4 interns',
+            ],
+            tech: ['Node.js', 'Express', 'GCP', 'JWT', 'Firestore', 'BLE', 'ESP32', 'Docker'],
+        },
+    },
+    android: {
+        visa: {
+            highlights: [
+                'Architected VisionX, an AI log-triage platform for ATM monitoring: Drain3 templating, a 20-class embedding classifier (82% F1) with LLM escalation, and HDBSCAN clustering of ~30K templates into ~200 ranked issues',
+                'Built a LangGraph remediation agent that diagnoses the root cause and ships its fixes as merged GitHub PRs',
+                'Engineered a FastAPI + Kafka pipeline handling ~1M logs/hour with a dead-letter queue over PostgreSQL',
+                "Cut issue triage time 50–60% versus manual engineer review; demoed VisionX live to Visa's VP-level leadership",
+                'Wrote an 84-page design document before building VisionX, then handed it off to a new-grad engineer on the team',
+                'Built a 0–100 outage risk engine that flags at-risk sources with leading indicators and a recommended action',
+            ],
+            tech: ['Python', 'FastAPI', 'Kafka', 'PostgreSQL', 'Redis', 'LangGraph', 'Docker', 'React'],
+        },
+        aim4u: {
+            description:
+                'Built and shipped two Flutter apps to Google Play and the App Store: Dermalens, an AI telehealth platform, and Autobuddys, a learning app for autistic children.',
+            highlights: [
+                'Architected Dermalens, an AI telehealth platform (discovery, booking, payments, e-prescriptions) on Flutter and AWS Lambda, integrating a Detectron2 + ResNet skin-disease model (90–95% accuracy); 300+ downloads',
+                'Co-developed Autobuddys, a Flutter app with 5 gamified modules and Firebase analytics; 250+ downloads',
+                'Built GitHub Actions CI/CD running lint, widget tests, signed builds, and Firebase App Distribution betas',
+                'Owned Google Play and App Store releases, signing, and medical-app compliance; migrated both apps from Flutter 2 to 3',
+                "Pitched Dermalens at 3+ startup competitions; shipping the judges' feedback lifted downloads 23%; mentored 4–5 junior interns",
+            ],
+            tech: ['Flutter', 'Dart', 'Firebase', 'AWS Lambda', 'Detectron2', 'GitHub Actions', 'Play Console'],
+        },
+        acuradyne: {
+            description:
+                'Built the mobile app and BLE data link for an IoT radial-pulse device used for aging assessment.',
+            highlights: [
+                'Re-engineered the data link of an IoT radial-pulse device, migrating Bluetooth Classic to BLE on ESP32 with chunked reassembly for 566% faster transfer (60 to 400 points/s; 850ms to 127ms per data payload)',
+                'Built a Flutter patient app with 60fps real-time pulse charts and PDF clinical reports (1K+ per day)',
+                'Added BLE auto-connect and disconnect with power optimization, extending device battery life between sessions',
+                'Shipped OTA firmware over BLE with checksum-verified transfer and rollback, cutting production time ~40%',
+            ],
+            tech: ['Flutter', 'Dart', 'BLE', 'ESP32', 'Firestore', 'OTA'],
+        },
+    },
+};
+
+export const experiences: Experience[] = base.map((e) => ({ ...e, ...byVariant[VARIANT][e.id] }));
 
 export interface Education {
     id: string;
@@ -97,8 +162,8 @@ export const education: Education[] = [
         degree: 'M.S. Computer Science',
         school: 'University of Colorado Boulder',
         location: 'United States',
-        period: 'Aug 2025 — Present',
-        gpa: '3.96',
+        period: 'Aug 2025 — May 2027',
+        gpa: '3.8 / 4.0',
         current: true,
     },
     {
@@ -106,15 +171,28 @@ export const education: Education[] = [
         degree: 'B.Tech Computer Engineering',
         school: 'Sardar Patel Institute of Technology',
         location: 'India',
-        period: '2020 — 2024',
-        gpa: '8.6 / 10.0',
+        period: 'Oct 2020 — May 2024',
+        gpa: '3.96 / 4.0',
         current: false,
     },
 ];
 
-export const skills = {
-    languages: ['Kotlin', 'Java', 'Dart', 'Go', 'Python', 'C', 'C++', 'JavaScript', 'TypeScript', 'SQL'],
-    databases: ['PostgreSQL', 'Redis', 'MongoDB', 'MySQL'],
-    frameworks: ['Jetpack Compose', 'Flutter', 'Android', 'Flask', 'Django', 'Node.js', 'Express', 'React', 'TensorFlow Lite'],
-    tools: ['Firebase', 'Google Cloud Platform', 'AWS', 'Docker', 'Kafka', 'CI/CD', 'Git', 'Figma'],
-};
+export interface SkillGroup {
+    title: string;
+    items: string[];
+}
+
+/* Mirrors the Technical Skills section of each resume. */
+export const skillGroups: SkillGroup[] = pick({
+    swe: [
+        { title: 'LANGUAGES & AI', items: ['Python', 'Go', 'Java', 'TypeScript', 'Kotlin', 'C++', 'SQL', 'Rust', 'PyTorch', 'LangGraph'] },
+        { title: 'BACKEND & SYSTEMS', items: ['Distributed Systems', 'Microservices', 'Kafka', 'gRPC', 'WebSockets', 'FastAPI', 'Django', 'React'] },
+        { title: 'CLOUD & DATA', items: ['AWS', 'GCP', 'Kubernetes', 'Docker', 'PostgreSQL', 'Redis', 'Prometheus', 'Grafana', 'Linux'] },
+    ],
+    android: [
+        { title: 'LANGUAGES', items: ['Kotlin (Coroutines/Flow)', 'Java', 'Dart', 'Python', 'Go', 'SQL'] },
+        { title: 'ANDROID & UI', items: ['Jetpack Compose', 'Material 3', 'Navigation Compose', 'CameraX', 'Room', 'Retrofit/OkHttp', 'Flutter'] },
+        { title: 'ARCHITECTURE', items: ['MVVM/MVI', 'Clean Architecture', 'Multi-module Gradle', 'Hilt/Dagger', 'Offline-first Sync'] },
+        { title: 'TESTING & RELEASE', items: ['JUnit', 'MockK', 'Espresso', 'Lint', 'Android Profiler', 'R8', 'GitHub Actions', 'Play Console', 'Git'] },
+    ],
+});

@@ -1,0 +1,21 @@
+flowchart LR
+    subgraph Mac["Mac host · MLX"]
+        A["Agent harness<br/>Qwen 1.5B"]
+        C["Credit module<br/>3B critic"]
+        T["Trainer<br/>LoRA PG"]
+        S["Sandbox SDK"]
+        A --> C --> T
+        A --> S
+    end
+    subgraph VM["Lima VM · KVM"]
+        N["noded<br/>Rust daemon"]
+        U["uffd page<br/>server"]
+        V0["microVM<br/>guest agent"]
+        V1["clone 1<br/>CoW"]
+        V2["clone n<br/>CoW"]
+        N --> U
+        U --> V1
+        U --> V2
+        N -- vsock --> V0
+    end
+    S -- HTTP --> N

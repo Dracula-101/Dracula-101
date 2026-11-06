@@ -1,6 +1,7 @@
 import { projects } from './projects';
-import { experiences, education, skills } from './experience';
+import { experiences, education, skillGroups } from './experience';
 import { publications } from './research';
+import { copy } from './variant';
 
 /* ──────────────────────────────────────────────────────────
    Command index for the ⌘K palette.
@@ -48,7 +49,7 @@ const LINKS: Command[] = [
   { id: 'link-github', label: 'GitHub', hint: 'github.com/Dracula-101', group: 'Links', keywords: ['code', 'source', 'repos'], action: { kind: 'external', href: 'https://github.com/Dracula-101' } },
   { id: 'link-linkedin', label: 'LinkedIn', hint: 'in/pratik-pujari', group: 'Links', keywords: ['social', 'connect'], action: { kind: 'external', href: 'https://linkedin.com/in/pratik-pujari' } },
   { id: 'link-email', label: 'Email', hint: 'pratikpujari1000@gmail.com', group: 'Links', keywords: ['mail', 'contact', 'hire'], action: { kind: 'external', href: 'mailto:pratikpujari1000@gmail.com' } },
-  { id: 'link-resume-pdf', label: 'Download résumé (PDF)', group: 'Links', keywords: ['cv', 'pdf', 'download'], action: { kind: 'external', href: `${import.meta.env.BASE_URL}resume.pdf` } },
+  { id: 'link-resume-pdf', label: 'Download résumé (PDF)', group: 'Links', keywords: ['cv', 'pdf', 'download'], action: { kind: 'external', href: `${import.meta.env.BASE_URL}${copy.resumePdf}` } },
 ];
 
 export const commands: Command[] = [
@@ -97,7 +98,7 @@ export const commands: Command[] = [
     searchable terms when the palette is empty. */
 export const allTech: string[] = [
   ...new Set([
-    ...Object.values(skills).flat(),
+    ...skillGroups.flatMap((g) => g.items),
     ...projects.flatMap((p) => p.tech),
     ...publications.flatMap((p) => p.tech),
   ]),

@@ -73,6 +73,12 @@ import syncDbStructure from '../assets/sync/db/structure.png';
 /* ── JetScan ──────────────────────────────────────── */
 import jetscanIcon from '../assets/jetscan/icon/icon.png';
 
+/* ── Pivot ────────────────────────────────────────── */
+import pivotRestore from '../assets/pivot/fig/restore.png';
+import pivotCredit from '../assets/pivot/fig/credit_accuracy.png';
+import pivotTraining from '../assets/pivot/fig/training.png';
+import pivotArchitecture from '../assets/pivot/architecture.mermaid?raw';
+
 /* ── Skycast ─────────────────────────────────────── */
 import skycastIntro from '../assets/skycast/app/intro.jpg';
 import skycastHome from '../assets/skycast/app/home.jpg';
@@ -89,6 +95,38 @@ import skycastIcon from '../assets/skycast/icon/icon.png';
  * Projects without screenshots simply won't have an entry.
  */
 export const projectImages: Record<string, ProjectImageGroup[]> = {
+    pivot: [
+        {
+            title: 'Fork Runtime',
+            variant: 'static',
+            images: [{ src: pivotRestore, label: 'Time to restore a sandbox to step t' }],
+            description: [
+                { heading: 'Getting back to step t', text: 'Restoring an agent sandbox to its state after 3 actions takes 208 ms with a Firecracker snapshot and copy-on-write fork, vs 2,720 ms for a fresh Docker container plus replay: 13x faster. Running processes survive the restore; with Docker they do not.' },
+                { heading: 'Forking N ways', text: 'Forking a running VM 16 ways takes 262 ms (1 clone: 50 ms). Running the test suite in all 16 clones at once takes 715 ms, down from 53 s before the huge-page, userfaultfd and idle-pause work (74x).' },
+                { heading: 'Tech', text: 'Rust · Firecracker · userfaultfd · huge pages · XFS reflink · vsock' },
+            ],
+        },
+        {
+            title: 'Credit Accuracy',
+            variant: 'static',
+            images: [{ src: pivotCredit, label: 'Step-credit accuracy vs fork budget' }],
+            description: [
+                { heading: 'Setup', text: '24 tasks, 96 trajectories, 209 steps. Every state was forked 12x to build a brute-force oracle, with sample pools kept separate from the oracle.' },
+                { heading: 'Result', text: 'At a 24-fork budget, fork-based step credit reached a Spearman of 0.60 against the oracle: about 2x GRPO (0.31) and 4x a frozen 3B LLM critic (0.15).' },
+                { heading: 'Negative result', text: 'Letting the 3B critic choose which steps to fork roughly matched random choice (0.57 vs 0.60). A perfect selector reaches 0.64, so the headroom needs a stronger critic.' },
+            ],
+        },
+        {
+            title: 'RL Training',
+            variant: 'static',
+            images: [{ src: pivotTraining, label: 'Held-out success vs compute' }],
+            description: [
+                { heading: 'Budget-matched training', text: 'A 1.5B coding policy (Qwen2.5-Coder on MLX) trained with LoRA policy gradient, ~20 minutes of compute per method, evaluated on 7 unseen function families.' },
+                { heading: 'Result', text: 'Held-out success rose from 17% to 62% with uniform fork credit, vs 27% for GRPO at equal compute, despite running fewer iterations (8 vs 22).' },
+                { heading: 'Scope', text: 'Laptop-scale pilot with one seed (95% CI about ±0.10): read the learning results as directional.' },
+            ],
+        },
+    ],
     nesters: [
         {
             title: 'App Screenshots',
@@ -177,7 +215,7 @@ export const projectImages: Record<string, ProjectImageGroup[]> = {
                 },
                 {
                     heading: 'Tech',
-                    text: 'MongoDB · PostgreSQL · Redis Pub/Sub · Go Backend · 40+ REST Endpoints',
+                    text: 'MongoDB · PostgreSQL · Redis Pub/Sub · Go Backend · 80+ REST Endpoints',
                 },
             ],
         },
@@ -188,6 +226,17 @@ export const projectImages: Record<string, ProjectImageGroup[]> = {
  * Map of project id → diagrams (mermaid charts).
  */
 export const projectDiagrams: Record<string, ProjectDiagram[]> = {
+    pivot: [
+        {
+            title: 'Architecture',
+            chart: pivotArchitecture,
+            description: [
+                { heading: 'Host', text: 'Experiments run on a Mac: a batched MLX agent harness, the credit module (frozen critic, pivotal-step scheduler, isotonic calibration) and a LoRA trainer.' },
+                { heading: 'Fork runtime', text: 'noded, a Rust daemon in a Lima VM, snapshots a running Firecracker microVM and serves its memory to N copy-on-write clones through a userfaultfd page server.' },
+                { heading: 'Guest', text: 'A static Rust agent inside each VM executes commands over vsock and reseeds RNG and fixes the clock after every fork.' },
+            ],
+        },
+    ],
     nesters: [
         {
             title: 'Database Architecture',

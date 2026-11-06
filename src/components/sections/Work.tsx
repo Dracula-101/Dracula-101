@@ -199,7 +199,7 @@ export function Work() {
       {/* Marquee divider */}
       <div style={{ borderTop: '1px solid var(--color-border)', borderBottom: '1px solid var(--color-border)', padding: `var(--space-2) 0`, marginBottom: 'var(--space-6)' }} className="overflow-hidden">
         <MarqueeReel
-          text="VISIONX · ECHO · SYNC · JETSCAN · NESTERS"
+          text={projects.map((p) => p.title.toUpperCase()).join(" · ")}
           speed={35}
           className="type-label text-[var(--color-muted)] opacity-30"
         />

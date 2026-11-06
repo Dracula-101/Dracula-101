@@ -6,12 +6,9 @@ import { SectionWrapper } from '../layout/SectionWrapper';
 import { Globe } from '../ui/Globe';
 import { useCursorStore } from '../../store/cursor.store';
 import { transitions } from '../../utils/spring';
+import { copy } from '../../data/variant';
 
-const ABOUT_STATS = [
-  { value: 4, suffix: '+', label: 'Projects Shipped' },
-  { value: 2, suffix: '', label: 'Internships' },
-  { value: 10, suffix: '+', label: 'Technologies' },
-];
+const ABOUT_STATS = copy.aboutStats;
 
 function TypewriterLabel({ text }: { text: string }) {
   const ref = useRef<HTMLSpanElement>(null);
@@ -64,7 +61,7 @@ export function About() {
                   className="type-heading"
                   style={{ color: 'var(--color-fg)' }}
                 >
-                  I build systems that scale and interfaces that matter.
+                  {copy.aboutHeading}
                 </h2>
               </TextReveal>
             </div>
@@ -73,12 +70,12 @@ export function About() {
           <div className="flex flex-col" style={{ gap: 'var(--space-2)' }}>
             <TextReveal delay={0.2}>
               <p className="type-body" style={{ color: 'var(--color-muted)' }}>
-                I'm a CS grad student at the University of Colorado Boulder (GPA 3.96), with a B.Tech from Sardar Patel Institute of Technology. I build distributed systems, real-time applications, and cross-platform mobile experiences — always from the API contract outward.
+                {copy.aboutParas[0]}
               </p>
             </TextReveal>
             <TextReveal delay={0.3}>
               <p className="type-body" style={{ color: 'var(--color-muted)' }}>
-                From 9-microservice architectures in Go to ML-powered healthcare platforms in Flutter, I approach every project as a systems problem with a craft solution. Previously interned at Aim4U Software Solutions and Acuradyne Systems (IIT Bombay Research Park).
+                {copy.aboutParas[1]}
               </p>
             </TextReveal>
           </div>

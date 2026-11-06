@@ -1,4 +1,5 @@
 import { useEffect } from 'react';
+import { SITE_URL, copy } from '../data/variant';
 
 /* ──────────────────────────────────────────────────────────
    Per-route document metadata.
@@ -10,11 +11,9 @@ import { useEffect } from 'react';
    ────────────────────────────────────────────────────────── */
 
 const SITE_NAME = 'Pratik Pujari';
-const SITE_URL = 'https://dracula-101.github.io/Dracula-101/';
-const DEFAULT_TITLE = 'Pratik Pujari — Engineer & Builder';
-const DEFAULT_DESCRIPTION =
-  'Full-Stack Engineer & Builder. Distributed systems, mobile apps, and intelligent interfaces.';
-const DEFAULT_IMAGE = `${SITE_URL}og.png`;
+const DEFAULT_TITLE = copy.metaTitle;
+const DEFAULT_DESCRIPTION = copy.metaDescription;
+const DEFAULT_IMAGE = 'https://dracula-101.github.io/Dracula-101/og.png';
 
 export interface DocumentMeta {
   /** Page-specific title; the site name is appended automatically. */
